@@ -1,852 +1,1092 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TETRIS IMPERIALIS — Baroque Edition</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,700;1,400&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TETRIS IMPERIALIS — Baroque Edition</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,700;1,400&display=swap');
 
-  :root {
-    --gold: #D4AF37;
-    --gold-light: #F0D060;
-    --gold-deep: #8B6914;
-    --crimson: #8B0000;
-    --velvet: #1a0a0a;
-    --velvet-dark: #0d0505;
-    --cream: #F5E6C8;
-  }
+    :root {
+      --gold: #D4AF37;
+      --gold-light: #F0D060;
+      --gold-deep: #8B6914;
+      --crimson: #8B0000;
+      --velvet: #1a0a0a;
+      --velvet-dark: #0d0505;
+      --cream: #F5E6C8;
+    }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  body {
-    background: var(--velvet-dark);
-    font-family: 'Cinzel', serif;
-    color: var(--cream);
-    min-height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
+    body {
+      background: var(--velvet-dark);
+      font-family: 'Cinzel', serif;
+      color: var(--cream);
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 15% 20%, rgba(139,0,0,0.18) 0%, transparent 50%),
-      radial-gradient(ellipse at 85% 80%, rgba(139,0,0,0.18) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, rgba(212,175,55,0.06) 0%, transparent 65%);
-    pointer-events: none;
-    z-index: 0;
-  }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 15% 20%, rgba(139, 0, 0, 0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 80%, rgba(139, 0, 0, 0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(212, 175, 55, 0.06) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cg fill='none' stroke='rgba(212,175,55,0.05)' stroke-width='0.5'%3E%3Ccircle cx='50' cy='50' r='40'/%3E%3Ccircle cx='50' cy='50' r='25'/%3E%3Cpath d='M50 10 L90 50 L50 90 L10 50 Z'/%3E%3Cpath d='M50 25 L75 50 L50 75 L25 50 Z'/%3E%3Cpath d='M10 10 Q50 0 90 10 Q100 50 90 90 Q50 100 10 90 Q0 50 10 10Z'/%3E%3C/g%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-  }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cg fill='none' stroke='rgba(212,175,55,0.05)' stroke-width='0.5'%3E%3Ccircle cx='50' cy='50' r='40'/%3E%3Ccircle cx='50' cy='50' r='25'/%3E%3Cpath d='M50 10 L90 50 L50 90 L10 50 Z'/%3E%3Cpath d='M50 25 L75 50 L50 75 L25 50 Z'/%3E%3Cpath d='M10 10 Q50 0 90 10 Q100 50 90 90 Q50 100 10 90 Q0 50 10 10Z'/%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  /* ─── LAYOUT ─── */
-  #game-container {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-  }
+    /* ─── LAYOUT ─── */
+    #game-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
 
-  /* ─── SIDE PANELS ─── */
-  .side-panel { width: 155px; display: flex; flex-direction: column; gap: 16px; }
+    /* ─── SIDE PANELS ─── */
+    .side-panel {
+      width: 155px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-  .panel-box {
-    background: linear-gradient(145deg, #190808, #291010);
-    border: 1px solid var(--gold-deep);
-    position: relative;
-    padding: 14px 12px 12px;
-    clip-path: polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px);
-  }
-  .panel-box::before {
-    content: '';
-    position: absolute;
-    inset: 2px;
-    border: 1px solid rgba(212,175,55,0.12);
-    clip-path: polygon(6px 0%,100% 0%,100% calc(100% - 6px),calc(100% - 6px) 100%,0% 100%,0% 6px);
-    pointer-events: none;
-  }
-  .panel-box::after {
-    content: '✦';
-    position: absolute;
-    top: -9px; left: 50%; transform: translateX(-50%);
-    color: var(--gold); font-size: 13px;
-    text-shadow: 0 0 8px var(--gold);
-    background: var(--velvet-dark);
-    padding: 0 4px;
-  }
-  .panel-label {
-    font-family: 'Cinzel Decorative', serif;
-    font-size: 8px; letter-spacing: 2px;
-    color: var(--gold-deep); text-align: center; margin-bottom: 7px;
-    text-transform: uppercase;
-  }
-  .panel-value {
-    font-family: 'Cinzel', serif;
-    font-size: 22px; font-weight: 900;
-    color: var(--gold-light); text-align: center;
-    text-shadow: 0 0 18px rgba(240,208,96,0.45), 0 0 36px rgba(240,208,96,0.18);
-    letter-spacing: 1px;
-  }
-  .panel-value.small { font-size: 14px; }
-  .speed-label {
-    font-family: 'EB Garamond', serif; font-style: italic;
-    font-size: 11px; color: var(--gold-deep); text-align: center; margin-top: 3px;
-  }
+    .panel-box {
+      background: linear-gradient(145deg, #190808, #291010);
+      border: 1px solid var(--gold-deep);
+      position: relative;
+      padding: 14px 12px 12px;
+      clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px);
+    }
 
-  /* ─── TITLE ─── */
-  #title-section {
-    position: absolute; top: -72px; left: 50%; transform: translateX(-50%);
-    text-align: center; white-space: nowrap; z-index: 2;
-  }
-  #title-section h1 {
-    font-family: 'Cinzel Decorative', serif;
-    font-size: 26px; font-weight: 900; color: var(--gold);
-    letter-spacing: 5px;
-    text-shadow: 0 0 28px rgba(212,175,55,0.6), 0 0 60px rgba(212,175,55,0.18), 2px 2px 4px rgba(0,0,0,0.8);
-  }
-  #title-section p {
-    font-family: 'EB Garamond', serif; font-style: italic;
-    font-size: 11px; color: var(--gold-deep); letter-spacing: 4px; margin-top: 2px;
-  }
+    .panel-box::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border: 1px solid rgba(212, 175, 55, 0.12);
+      clip-path: polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px);
+      pointer-events: none;
+    }
 
-  /* ─── FRAME ─── */
-  #frame-wrapper { position: relative; }
-  .baroque-frame {
-    position: absolute; inset: -22px;
-    pointer-events: none; z-index: 3;
-  }
-  #game-canvas { display: block; position: relative; z-index: 2; image-rendering: pixelated; }
-  #particle-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+    .panel-box::after {
+      content: '✦';
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--gold);
+      font-size: 13px;
+      text-shadow: 0 0 8px var(--gold);
+      background: var(--velvet-dark);
+      padding: 0 4px;
+    }
 
-  /* ─── OVERLAYS ─── */
-  .overlay {
-    position: absolute; inset: 0; z-index: 10;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(180deg, rgba(13,5,5,0.93) 0%, rgba(26,8,8,0.89) 100%);
-    backdrop-filter: blur(2px);
-  }
-  .overlay h2 {
-    font-family: 'Cinzel Decorative', serif;
-    font-size: 22px; color: var(--gold);
-    text-shadow: 0 0 28px rgba(212,175,55,0.7); letter-spacing: 4px;
-    margin-bottom: 14px; animation: pulse-gold 2s ease-in-out infinite;
-  }
-  .overlay p {
-    font-family: 'EB Garamond', serif; font-size: 15px;
-    color: var(--cream); opacity: 0.78; margin-bottom: 7px; letter-spacing: 1px;
-  }
-  .start-btn {
-    margin-top: 22px; padding: 13px 38px;
-    background: linear-gradient(135deg, var(--crimson), #530000);
-    border: 2px solid var(--gold);
-    color: var(--gold-light);
-    font-family: 'Cinzel Decorative', serif; font-size: 12px; letter-spacing: 3px;
-    cursor: pointer;
-    clip-path: polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px);
-    text-shadow: 0 0 10px rgba(240,208,96,0.5);
-    box-shadow: 0 0 20px rgba(212,175,55,0.18), inset 0 0 18px rgba(212,175,55,0.04);
-    transition: all 0.25s;
-  }
-  .start-btn:hover {
-    background: linear-gradient(135deg, #a00000, var(--crimson));
-    box-shadow: 0 0 30px rgba(212,175,55,0.4), inset 0 0 20px rgba(212,175,55,0.08);
-    transform: scale(1.03);
-  }
-  .hidden { display: none !important; }
+    .panel-label {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: var(--gold-deep);
+      text-align: center;
+      margin-bottom: 7px;
+      text-transform: uppercase;
+    }
 
-  /* ─── CONTROLS HINT ─── */
-  #controls-hint {
-    position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%);
-    white-space: nowrap; text-align: center; z-index: 2;
-  }
-  #controls-hint p {
-    font-family: 'EB Garamond', serif; font-style: italic;
-    font-size: 11px; color: var(--gold-deep); letter-spacing: 2px;
-  }
+    .panel-value {
+      font-family: 'Cinzel', serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--gold-light);
+      text-align: center;
+      text-shadow: 0 0 18px rgba(240, 208, 96, 0.45), 0 0 36px rgba(240, 208, 96, 0.18);
+      letter-spacing: 1px;
+    }
 
-  /* ─── FX ─── */
-  @keyframes pulse-gold {
-    0%,100% { text-shadow: 0 0 20px rgba(212,175,55,0.5), 0 0 40px rgba(212,175,55,0.18); }
-    50%      { text-shadow: 0 0 40px rgba(212,175,55,0.9), 0 0 80px rgba(212,175,55,0.4); }
-  }
+    .panel-value.small {
+      font-size: 14px;
+    }
 
-  #level-flash {
-    position: fixed; inset: 0;
-    background: radial-gradient(ellipse at center, rgba(212,175,55,0.28), transparent 70%);
-    pointer-events: none; z-index: 50; opacity: 0; transition: opacity 0.1s;
-  }
-  #level-flash.flash { opacity: 1; transition: opacity 0s; }
+    .speed-label {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 11px;
+      color: var(--gold-deep);
+      text-align: center;
+      margin-top: 3px;
+    }
 
-  #line-flash {
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.22), transparent);
-    pointer-events: none; z-index: 5; opacity: 0; transition: opacity 0.15s;
-  }
+    /* ─── TITLE ─── */
+    #title-section {
+      position: absolute;
+      top: -72px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      white-space: nowrap;
+      z-index: 2;
+    }
 
-  /* Candelabras */
-  .candelabra {
-    position: fixed; bottom: 0; width: 72px;
-    pointer-events: none; z-index: 1; opacity: 0.55;
-  }
-  .candelabra.left  { left: 18px; }
-  .candelabra.right { right: 18px; transform: scaleX(-1); }
-</style>
+    #title-section h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 5px;
+      text-shadow: 0 0 28px rgba(212, 175, 55, 0.6), 0 0 60px rgba(212, 175, 55, 0.18), 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    #title-section p {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 11px;
+      color: var(--gold-deep);
+      letter-spacing: 4px;
+      margin-top: 2px;
+    }
+
+    /* ─── FRAME ─── */
+    #frame-wrapper {
+      position: relative;
+    }
+
+    .baroque-frame {
+      position: absolute;
+      inset: -22px;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    #game-canvas {
+      display: block;
+      position: relative;
+      z-index: 2;
+      image-rendering: pixelated;
+    }
+
+    #particle-canvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* ─── OVERLAYS ─── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(13, 5, 5, 0.93) 0%, rgba(26, 8, 8, 0.89) 100%);
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay h2 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 22px;
+      color: var(--gold);
+      text-shadow: 0 0 28px rgba(212, 175, 55, 0.7);
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+      animation: pulse-gold 2s ease-in-out infinite;
+    }
+
+    .overlay p {
+      font-family: 'EB Garamond', serif;
+      font-size: 15px;
+      color: var(--cream);
+      opacity: 0.78;
+      margin-bottom: 7px;
+      letter-spacing: 1px;
+    }
+
+    .start-btn {
+      margin-top: 22px;
+      padding: 13px 38px;
+      background: linear-gradient(135deg, var(--crimson), #530000);
+      border: 2px solid var(--gold);
+      color: var(--gold-light);
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 12px;
+      letter-spacing: 3px;
+      cursor: pointer;
+      clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px);
+      text-shadow: 0 0 10px rgba(240, 208, 96, 0.5);
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.18), inset 0 0 18px rgba(212, 175, 55, 0.04);
+      transition: all 0.25s;
+    }
+
+    .start-btn:hover {
+      background: linear-gradient(135deg, #a00000, var(--crimson));
+      box-shadow: 0 0 30px rgba(212, 175, 55, 0.4), inset 0 0 20px rgba(212, 175, 55, 0.08);
+      transform: scale(1.03);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ─── CONTROLS HINT ─── */
+    #controls-hint {
+      position: absolute;
+      bottom: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      text-align: center;
+      z-index: 2;
+    }
+
+    #controls-hint p {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 11px;
+      color: var(--gold-deep);
+      letter-spacing: 2px;
+    }
+
+    /* ─── FX ─── */
+    @keyframes pulse-gold {
+
+      0%,
+      100% {
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(212, 175, 55, 0.18);
+      }
+
+      50% {
+        text-shadow: 0 0 40px rgba(212, 175, 55, 0.9), 0 0 80px rgba(212, 175, 55, 0.4);
+      }
+    }
+
+    #level-flash {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.28), transparent 70%);
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+
+    #level-flash.flash {
+      opacity: 1;
+      transition: opacity 0s;
+    }
+
+    #line-flash {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.22), transparent);
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    /* Candelabras */
+    .candelabra {
+      position: fixed;
+      bottom: 0;
+      width: 72px;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.55;
+    }
+
+    .candelabra.left {
+      left: 18px;
+    }
+
+    .candelabra.right {
+      right: 18px;
+      transform: scaleX(-1);
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="level-flash"></div>
+  <div id="level-flash"></div>
 
-<!-- Candelabras -->
-<svg class="candelabra left" viewBox="0 0 80 220" xmlns="http://www.w3.org/2000/svg">
-  <rect x="34" y="170" width="12" height="50" fill="#3a1600" rx="3"/>
-  <ellipse cx="40" cy="168" rx="22" ry="6" fill="#2e1100"/>
-  <rect x="37" y="105" width="6" height="65" fill="#3a1600" rx="1.5"/>
-  <circle cx="40" cy="105" r="5" fill="#8B6914"/>
-  <path d="M28 105 Q22 93 28 80 Q34 93 40 80 Q46 93 52 80 Q58 93 52 105Z" fill="#7a5a10"/>
-  <!-- flames -->
-  <ellipse cx="28" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
-    <animateTransform attributeName="transform" type="scale" values="1 1;0.85 1.12;1 1" dur="0.45s" repeatCount="indefinite" additive="sum"/>
-  </ellipse>
-  <ellipse cx="28" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8">
-    <animateTransform attributeName="transform" type="scale" values="1 1;0.9 1.08;1 1" dur="0.38s" repeatCount="indefinite" additive="sum"/>
-  </ellipse>
-  <ellipse cx="40" cy="77" rx="3.5" ry="8" fill="#FF8F00" opacity="0.95">
-    <animateTransform attributeName="transform" type="scale" values="1 1;1.1 0.9;1 1" dur="0.52s" repeatCount="indefinite" additive="sum"/>
-  </ellipse>
-  <ellipse cx="40" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8"/>
-  <ellipse cx="52" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
-    <animateTransform attributeName="transform" type="scale" values="1 1;0.92 1.1;1 1" dur="0.6s" repeatCount="indefinite" additive="sum"/>
-  </ellipse>
-  <ellipse cx="52" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8"/>
-</svg>
+  <!-- Candelabras -->
+  <svg class="candelabra left" viewBox="0 0 80 220" xmlns="http://www.w3.org/2000/svg">
+    <rect x="34" y="170" width="12" height="50" fill="#3a1600" rx="3" />
+    <ellipse cx="40" cy="168" rx="22" ry="6" fill="#2e1100" />
+    <rect x="37" y="105" width="6" height="65" fill="#3a1600" rx="1.5" />
+    <circle cx="40" cy="105" r="5" fill="#8B6914" />
+    <path d="M28 105 Q22 93 28 80 Q34 93 40 80 Q46 93 52 80 Q58 93 52 105Z" fill="#7a5a10" />
+    <!-- flames -->
+    <ellipse cx="28" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
+      <animateTransform attributeName="transform" type="scale" values="1 1;0.85 1.12;1 1" dur="0.45s"
+        repeatCount="indefinite" additive="sum" />
+    </ellipse>
+    <ellipse cx="28" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8">
+      <animateTransform attributeName="transform" type="scale" values="1 1;0.9 1.08;1 1" dur="0.38s"
+        repeatCount="indefinite" additive="sum" />
+    </ellipse>
+    <ellipse cx="40" cy="77" rx="3.5" ry="8" fill="#FF8F00" opacity="0.95">
+      <animateTransform attributeName="transform" type="scale" values="1 1;1.1 0.9;1 1" dur="0.52s"
+        repeatCount="indefinite" additive="sum" />
+    </ellipse>
+    <ellipse cx="40" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8" />
+    <ellipse cx="52" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
+      <animateTransform attributeName="transform" type="scale" values="1 1;0.92 1.1;1 1" dur="0.6s"
+        repeatCount="indefinite" additive="sum" />
+    </ellipse>
+    <ellipse cx="52" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8" />
+  </svg>
 
-<svg class="candelabra right" viewBox="0 0 80 220" xmlns="http://www.w3.org/2000/svg">
-  <rect x="34" y="170" width="12" height="50" fill="#3a1600" rx="3"/>
-  <ellipse cx="40" cy="168" rx="22" ry="6" fill="#2e1100"/>
-  <rect x="37" y="105" width="6" height="65" fill="#3a1600" rx="1.5"/>
-  <circle cx="40" cy="105" r="5" fill="#8B6914"/>
-  <path d="M28 105 Q22 93 28 80 Q34 93 40 80 Q46 93 52 80 Q58 93 52 105Z" fill="#7a5a10"/>
-  <ellipse cx="28" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
-    <animateTransform attributeName="transform" type="scale" values="1 1;0.88 1.1;1 1" dur="0.5s" repeatCount="indefinite" additive="sum"/>
-  </ellipse>
-  <ellipse cx="28" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8"/>
-  <ellipse cx="40" cy="77" rx="3.5" ry="8" fill="#FF8F00" opacity="0.95">
-    <animateTransform attributeName="transform" type="scale" values="1 1;1.08 0.92;1 1" dur="0.41s" repeatCount="indefinite" additive="sum"/>
-  </ellipse>
-  <ellipse cx="40" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8"/>
-  <ellipse cx="52" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
-    <animateTransform attributeName="transform" type="scale" values="1 1;0.95 1.06;1 1" dur="0.63s" repeatCount="indefinite" additive="sum"/>
-  </ellipse>
-  <ellipse cx="52" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8"/>
-</svg>
+  <svg class="candelabra right" viewBox="0 0 80 220" xmlns="http://www.w3.org/2000/svg">
+    <rect x="34" y="170" width="12" height="50" fill="#3a1600" rx="3" />
+    <ellipse cx="40" cy="168" rx="22" ry="6" fill="#2e1100" />
+    <rect x="37" y="105" width="6" height="65" fill="#3a1600" rx="1.5" />
+    <circle cx="40" cy="105" r="5" fill="#8B6914" />
+    <path d="M28 105 Q22 93 28 80 Q34 93 40 80 Q46 93 52 80 Q58 93 52 105Z" fill="#7a5a10" />
+    <ellipse cx="28" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
+      <animateTransform attributeName="transform" type="scale" values="1 1;0.88 1.1;1 1" dur="0.5s"
+        repeatCount="indefinite" additive="sum" />
+    </ellipse>
+    <ellipse cx="28" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8" />
+    <ellipse cx="40" cy="77" rx="3.5" ry="8" fill="#FF8F00" opacity="0.95">
+      <animateTransform attributeName="transform" type="scale" values="1 1;1.08 0.92;1 1" dur="0.41s"
+        repeatCount="indefinite" additive="sum" />
+    </ellipse>
+    <ellipse cx="40" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8" />
+    <ellipse cx="52" cy="77" rx="3.5" ry="8" fill="#FFB300" opacity="0.95">
+      <animateTransform attributeName="transform" type="scale" values="1 1;0.95 1.06;1 1" dur="0.63s"
+        repeatCount="indefinite" additive="sum" />
+    </ellipse>
+    <ellipse cx="52" cy="77" rx="2" ry="5" fill="#FFF176" opacity="0.8" />
+  </svg>
 
-<!-- GAME CONTAINER -->
-<div id="game-container">
+  <!-- GAME CONTAINER -->
+  <div id="game-container">
 
-  <!-- LEFT PANEL -->
-  <div class="side-panel">
-    <div class="panel-box">
-      <div class="panel-label">Score</div>
-      <div class="panel-value" id="score-display">0</div>
+    <!-- LEFT PANEL -->
+    <div class="side-panel">
+      <div class="panel-box">
+        <div class="panel-label">Score</div>
+        <div class="panel-value" id="score-display">0</div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">Level</div>
+        <div class="panel-value" id="level-display">1</div>
+        <div class="speed-label" id="speed-label">Andante</div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">Lines</div>
+        <div class="panel-value" id="lines-display">0</div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">Best</div>
+        <div class="panel-value small" id="hiscore-display">0</div>
+      </div>
     </div>
-    <div class="panel-box">
-      <div class="panel-label">Niveau</div>
-      <div class="panel-value" id="level-display">1</div>
-      <div class="speed-label" id="speed-label">Andante</div>
+
+    <!-- MAIN GAME AREA -->
+    <div id="frame-wrapper">
+      <!-- Baroque SVG Frame -->
+      <svg class="baroque-frame" viewBox="0 0 344 644" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="gG" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#D4AF37" />
+            <stop offset="45%" stop-color="#F0D060" />
+            <stop offset="100%" stop-color="#8B6914" />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2.5" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <!-- Double border -->
+        <rect x="20" y="20" width="304" height="604" fill="none" stroke="url(#gG)" stroke-width="2" rx="0"
+          filter="url(#glow)" opacity="0.85" />
+        <rect x="16" y="16" width="312" height="612" fill="none" stroke="#8B6914" stroke-width="1" opacity="0.4" />
+        <!-- Corner ornaments TL -->
+        <g filter="url(#glow)">
+          <circle cx="20" cy="20" r="9" fill="url(#gG)" />
+          <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2" />
+          <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3" />
+          <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <circle cx="5" cy="5" r="2.5" fill="#F0D060" />
+          <path d="M46 5 Q54 8 56 14 Q50 12 46 5Z" fill="url(#gG)" opacity="0.6" />
+          <path d="M5 46 Q8 54 14 56 Q12 50 5 46Z" fill="url(#gG)" opacity="0.6" />
+        </g>
+        <!-- TR -->
+        <g filter="url(#glow)" transform="translate(344,0) scale(-1,1)">
+          <circle cx="20" cy="20" r="9" fill="url(#gG)" />
+          <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2" />
+          <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3" />
+          <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <circle cx="5" cy="5" r="2.5" fill="#F0D060" />
+        </g>
+        <!-- BL -->
+        <g filter="url(#glow)" transform="translate(0,644) scale(1,-1)">
+          <circle cx="20" cy="20" r="9" fill="url(#gG)" />
+          <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2" />
+          <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3" />
+          <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <circle cx="5" cy="5" r="2.5" fill="#F0D060" />
+        </g>
+        <!-- BR -->
+        <g filter="url(#glow)" transform="translate(344,644) scale(-1,-1)">
+          <circle cx="20" cy="20" r="9" fill="url(#gG)" />
+          <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2" />
+          <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3" />
+          <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2" />
+          <circle cx="5" cy="5" r="2.5" fill="#F0D060" />
+        </g>
+        <!-- Top center ornament -->
+        <g transform="translate(172,0)" filter="url(#glow)">
+          <path d="M0 20 L-20 20 Q-14 8 0 6 Q14 8 20 20Z" fill="url(#gG)" opacity="0.9" />
+          <circle cx="0" cy="5" r="4.5" fill="#F0D060" />
+          <path d="M-16 20 Q-24 12 -20 4" fill="none" stroke="url(#gG)" stroke-width="1" />
+          <path d="M16 20 Q24 12 20 4" fill="none" stroke="url(#gG)" stroke-width="1" />
+        </g>
+        <!-- Bottom center ornament -->
+        <g transform="translate(172,644) scale(1,-1)" filter="url(#glow)">
+          <path d="M0 20 L-20 20 Q-14 8 0 6 Q14 8 20 20Z" fill="url(#gG)" opacity="0.9" />
+          <circle cx="0" cy="5" r="4.5" fill="#F0D060" />
+        </g>
+        <!-- Left mid -->
+        <g transform="translate(0,322)" filter="url(#glow)" opacity="0.8">
+          <path d="M20 0 L20 -14 Q8 -7 6 0 Q8 7 20 14Z" fill="url(#gG)" />
+          <circle cx="5" cy="0" r="3.5" fill="#F0D060" />
+        </g>
+        <!-- Right mid -->
+        <g transform="translate(344,322) scale(-1,1)" filter="url(#glow)" opacity="0.8">
+          <path d="M20 0 L20 -14 Q8 -7 6 0 Q8 7 20 14Z" fill="url(#gG)" />
+          <circle cx="5" cy="0" r="3.5" fill="#F0D060" />
+        </g>
+      </svg>
+
+      <canvas id="game-canvas" width="300" height="600"></canvas>
+      <canvas id="particle-canvas" width="300" height="600"></canvas>
+      <div id="line-flash"></div>
+
+      <!-- Start Screen -->
+      <div class="overlay" id="start-screen">
+        <h2>✦ Tetris Imperialis ✦</h2>
+        <p style="font-style:italic;opacity:0.65;font-size:12px;margin-bottom:14px;">— Royal Baroque Edition —</p>
+        <p>← → &nbsp;Move</p>
+        <p>↑ &nbsp;Rotate &nbsp;·&nbsp; ↓ &nbsp;Soft Drop</p>
+        <p>Space &nbsp;Hard Drop &nbsp;·&nbsp; P &nbsp;Pause</p>
+        <button class="start-btn" id="start-btn">⚜ &nbsp;Begin&nbsp; ⚜</button>
+      </div>
+
+      <!-- Pause Screen -->
+      <div class="overlay hidden" id="pause-screen">
+        <h2>✦ Paused ✦</h2>
+        <p style="margin-top:14px;font-style:italic;opacity:0.6;">Press P to resume</p>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div class="overlay hidden" id="gameover-screen">
+        <h2 style="color:#C0392B;text-shadow:0 0 30px rgba(192,57,43,0.8);">⚰ &nbsp;Defeated &nbsp;⚰</h2>
+        <p id="final-score-label" style="margin-top:10px;"></p>
+        <p id="final-lines-label" style="font-size:12px;opacity:0.65;"></p>
+        <button class="start-btn" id="restart-btn">⚜ &nbsp;Play Again &nbsp;⚜</button>
+      </div>
     </div>
-    <div class="panel-box">
-      <div class="panel-label">Lignes</div>
-      <div class="panel-value" id="lines-display">0</div>
-    </div>
-    <div class="panel-box">
-      <div class="panel-label">Record</div>
-      <div class="panel-value small" id="hiscore-display">0</div>
+
+    <!-- RIGHT PANEL -->
+    <div class="side-panel">
+      <div class="panel-box">
+        <div class="panel-label">Next</div>
+        <canvas id="next-canvas" width="120" height="80"></canvas>
+      </div>
+      <div class="panel-box" style="min-height:82px;">
+        <div class="panel-label">Glory</div>
+        <div class="panel-value" id="combo-display" style="font-size:13px;color:#8B0000;">—</div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">Pieces</div>
+        <div class="panel-value small" id="piece-count">0</div>
+      </div>
     </div>
   </div>
 
-  <!-- MAIN GAME AREA -->
-  <div id="frame-wrapper">
-    <!-- Baroque SVG Frame -->
-    <svg class="baroque-frame" viewBox="0 0 344 544" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="gG" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stop-color="#D4AF37"/>
-          <stop offset="45%"  stop-color="#F0D060"/>
-          <stop offset="100%" stop-color="#8B6914"/>
-        </linearGradient>
-        <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      </defs>
-      <!-- Double border -->
-      <rect x="20" y="20" width="304" height="504" fill="none" stroke="url(#gG)" stroke-width="2" rx="0" filter="url(#glow)" opacity="0.85"/>
-      <rect x="16" y="16" width="312" height="512" fill="none" stroke="#8B6914" stroke-width="1" opacity="0.4"/>
-      <!-- Corner ornaments TL -->
-      <g filter="url(#glow)">
-        <circle cx="20" cy="20" r="9" fill="url(#gG)"/>
-        <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2"/>
-        <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3"/>
-        <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <circle cx="5" cy="5" r="2.5" fill="#F0D060"/>
-        <path d="M46 5 Q54 8 56 14 Q50 12 46 5Z" fill="url(#gG)" opacity="0.6"/>
-        <path d="M5 46 Q8 54 14 56 Q12 50 5 46Z" fill="url(#gG)" opacity="0.6"/>
-      </g>
-      <!-- TR -->
-      <g filter="url(#glow)" transform="translate(344,0) scale(-1,1)">
-        <circle cx="20" cy="20" r="9" fill="url(#gG)"/>
-        <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2"/>
-        <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3"/>
-        <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <circle cx="5" cy="5" r="2.5" fill="#F0D060"/>
-      </g>
-      <!-- BL -->
-      <g filter="url(#glow)" transform="translate(0,544) scale(1,-1)">
-        <circle cx="20" cy="20" r="9" fill="url(#gG)"/>
-        <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2"/>
-        <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3"/>
-        <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <circle cx="5" cy="5" r="2.5" fill="#F0D060"/>
-      </g>
-      <!-- BR -->
-      <g filter="url(#glow)" transform="translate(344,544) scale(-1,-1)">
-        <circle cx="20" cy="20" r="9" fill="url(#gG)"/>
-        <path d="M5 20 Q5 5 20 5" fill="none" stroke="url(#gG)" stroke-width="2"/>
-        <path d="M20 5 L5 5 L5 20" fill="url(#gG)" opacity="0.3"/>
-        <path d="M20 12 Q32 6 46 5" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <path d="M12 20 Q6 32 5 46" fill="none" stroke="url(#gG)" stroke-width="1.2"/>
-        <circle cx="5" cy="5" r="2.5" fill="#F0D060"/>
-      </g>
-      <!-- Top center ornament -->
-      <g transform="translate(172,0)" filter="url(#glow)">
-        <path d="M0 20 L-20 20 Q-14 8 0 6 Q14 8 20 20Z" fill="url(#gG)" opacity="0.9"/>
-        <circle cx="0" cy="5" r="4.5" fill="#F0D060"/>
-        <path d="M-16 20 Q-24 12 -20 4" fill="none" stroke="url(#gG)" stroke-width="1"/>
-        <path d="M16 20 Q24 12 20 4" fill="none" stroke="url(#gG)" stroke-width="1"/>
-      </g>
-      <!-- Bottom center ornament -->
-      <g transform="translate(172,544) scale(1,-1)" filter="url(#glow)">
-        <path d="M0 20 L-20 20 Q-14 8 0 6 Q14 8 20 20Z" fill="url(#gG)" opacity="0.9"/>
-        <circle cx="0" cy="5" r="4.5" fill="#F0D060"/>
-      </g>
-      <!-- Left mid -->
-      <g transform="translate(0,272)" filter="url(#glow)" opacity="0.8">
-        <path d="M20 0 L20 -14 Q8 -7 6 0 Q8 7 20 14Z" fill="url(#gG)"/>
-        <circle cx="5" cy="0" r="3.5" fill="#F0D060"/>
-      </g>
-      <!-- Right mid -->
-      <g transform="translate(344,272) scale(-1,1)" filter="url(#glow)" opacity="0.8">
-        <path d="M20 0 L20 -14 Q8 -7 6 0 Q8 7 20 14Z" fill="url(#gG)"/>
-        <circle cx="5" cy="0" r="3.5" fill="#F0D060"/>
-      </g>
-    </svg>
-
-    <canvas id="game-canvas" width="300" height="500"></canvas>
-    <canvas id="particle-canvas" width="300" height="500"></canvas>
-    <div id="line-flash"></div>
-
-    <!-- Start Screen -->
-    <div class="overlay" id="start-screen">
-      <h2>✦ Tetris Imperialis ✦</h2>
-      <p style="font-style:italic;opacity:0.65;font-size:12px;margin-bottom:14px;">— Édition Baroque Royale —</p>
-      <p>← → &nbsp;Déplacer</p>
-      <p>↑ &nbsp;Tourner &nbsp;·&nbsp; ↓ &nbsp;Descendre</p>
-      <p>Espace &nbsp;Chute rapide &nbsp;·&nbsp; P &nbsp;Pause</p>
-      <button class="start-btn" id="start-btn">⚜ &nbsp;Commencer&nbsp; ⚜</button>
-    </div>
-
-    <!-- Pause Screen -->
-    <div class="overlay hidden" id="pause-screen">
-      <h2>✦ Pausé ✦</h2>
-      <p style="margin-top:14px;font-style:italic;opacity:0.6;">Appuyez P pour reprendre</p>
-    </div>
-
-    <!-- Game Over Screen -->
-    <div class="overlay hidden" id="gameover-screen">
-      <h2 style="color:#C0392B;text-shadow:0 0 30px rgba(192,57,43,0.8);">⚰ &nbsp;Défaite &nbsp;⚰</h2>
-      <p id="final-score-label" style="margin-top:10px;"></p>
-      <p id="final-lines-label" style="font-size:12px;opacity:0.65;"></p>
-      <button class="start-btn" id="restart-btn">⚜ &nbsp;Rejouer &nbsp;⚜</button>
-    </div>
+  <!-- Title -->
+  <div id="title-section">
+    <h1>TETRIS IMPERIALIS</h1>
+    <p>— Royal Baroque Edition —</p>
   </div>
 
-  <!-- RIGHT PANEL -->
-  <div class="side-panel">
-    <div class="panel-box">
-      <div class="panel-label">Prochain</div>
-      <canvas id="next-canvas" width="120" height="80"></canvas>
-    </div>
-    <div class="panel-box" style="min-height:82px;">
-      <div class="panel-label">Gloire</div>
-      <div class="panel-value" id="combo-display" style="font-size:13px;color:#8B0000;">—</div>
-    </div>
-    <div class="panel-box">
-      <div class="panel-label">Pièces</div>
-      <div class="panel-value small" id="piece-count">0</div>
-    </div>
+  <!-- Controls hint -->
+  <div id="controls-hint">
+    <p>⚜ &nbsp; ← → Move · ↑ Rotate · ↓ Soft Drop · Space Hard Drop · P Pause &nbsp; ⚜</p>
   </div>
-</div>
 
-<!-- Title -->
-<div id="title-section">
-  <h1>TETRIS IMPERIALIS</h1>
-  <p>— Édition Baroque Royale —</p>
-</div>
+  <script>
+    /* ══════════════════════════════
+       WEB AUDIO ENGINE
+    ══════════════════════════════ */
+    let audioCtx = null, masterGain = null, musicNodes = [];
 
-<!-- Controls hint -->
-<div id="controls-hint">
-  <p>⚜ &nbsp; ← → Mouvement · ↑ Rotation · ↓ Glisser · Espace Chute · P Pause &nbsp; ⚜</p>
-</div>
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.45;
 
-<script>
-/* ══════════════════════════════
-   WEB AUDIO ENGINE
-══════════════════════════════ */
-let audioCtx = null, masterGain = null;
+      // Reverb impulse
+      const rev = audioCtx.createConvolver();
+      const len = audioCtx.sampleRate * 1.8;
+      const buf = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
+      for (let c = 0; c < 2; c++) {
+        const d = buf.getChannelData(c);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.8);
+      }
+      rev.buffer = buf;
+      const revGain = audioCtx.createGain();
+      revGain.gain.value = 0.18;
+      masterGain.connect(rev);
+      rev.connect(revGain);
+      revGain.connect(audioCtx.destination);
+      masterGain.connect(audioCtx.destination);
+    }
 
-function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.45;
+    /* ── BACKGROUND MUSIC: Korobeiniki (Russian Tetris Theme) ── */
+    // Authentic Korobeiniki melody — note durations in quarter-note beats at base BPM 145
+    // Format: [frequency_hz, beats]  (1 beat = 1 quarter note)
+    const KOROBEINIKI = [
+      // Part A
+      [659.25, 1], [493.88, 0.5], [523.25, 0.5], [587.33, 1], [523.25, 0.5], [493.88, 0.5],
+      [440.00, 1], [440.00, 0.5], [523.25, 0.5], [659.25, 1], [587.33, 0.5], [523.25, 0.5],
+      [493.88, 1.5], [523.25, 0.5], [587.33, 1], [659.25, 1],
+      [523.25, 1], [440.00, 1], [440.00, 2],
+      // Part A repeat
+      [587.33, 1], [698.46, 0.5], [880.00, 1], [783.99, 0.5], [698.46, 0.5],
+      [659.25, 1.5], [523.25, 0.5], [659.25, 1], [587.33, 0.5], [523.25, 0.5],
+      [493.88, 1], [493.88, 0.5], [523.25, 0.5], [587.33, 1], [659.25, 1],
+      [523.25, 1], [440.00, 1], [440.00, 2],
+      // Part B
+      [659.25, 2], [523.25, 1], [659.25, 2], [587.33, 1],
+      [493.88, 2], [440.00, 1], [493.88, 2], [523.25, 1],
+      [659.25, 2], [523.25, 1], [659.25, 1], [587.33, 0.5], [523.25, 0.5],
+      [493.88, 1.5], [523.25, 0.5], [587.33, 1], [659.25, 1],
+      [523.25, 1], [440.00, 1], [440.00, 2]
+    ];
 
-  // Reverb impulse
-  const rev = audioCtx.createConvolver();
-  const len = audioCtx.sampleRate * 1.8;
-  const buf = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
-  for (let c = 0; c < 2; c++) {
-    const d = buf.getChannelData(c);
-    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/len, 2.8);
-  }
-  rev.buffer = buf;
-  const revGain = audioCtx.createGain();
-  revGain.gain.value = 0.18;
-  masterGain.connect(rev);
-  rev.connect(revGain);
-  revGain.connect(audioCtx.destination);
-  masterGain.connect(audioCtx.destination);
-}
+    // Bass line: plays alongside, cycling every 8 beats
+    const KORO_BASS = [
+      [110.00, 1], [110.00, 1], [146.83, 1], [110.00, 1],
+      [138.59, 1], [110.00, 1], [130.81, 1], [110.00, 1]
+    ];
 
-function tone(freq, type, dur, vol=0.25, detune=0, delay=0) {
-  if (!audioCtx) return;
-  const t = audioCtx.currentTime + delay;
-  const osc = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  osc.connect(g); g.connect(masterGain);
-  osc.type = type; osc.frequency.value = freq; osc.detune.value = detune;
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  osc.start(t); osc.stop(t + dur + 0.05);
-}
+    let musicTimeout = null, musicRunning = false;
 
-const sndMove   = () => tone(200,'triangle',0.07,0.07);
-const sndRotate = () => { tone(392,'sine',0.09,0.1); tone(523,'sine',0.06,0.06,0,0.04); };
-const sndDrop   = () => { tone(100,'sawtooth',0.14,0.22); tone(70,'sine',0.18,0.14); };
-const sndTick   = () => tone(165,'triangle',0.04,0.05);
+    function playMusicNote(freq, durSec, vol, type = 'triangle') {
+      if (!audioCtx || !musicRunning || freq === 0) return;
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.connect(g); g.connect(masterGain);
+      osc.type = type;
+      osc.frequency.value = freq;
+      // Envelope: quick attack, sustain, gentle release
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol, t + 0.012);
+      g.gain.setValueAtTime(vol * 0.85, t + durSec * 0.6);
+      g.gain.exponentialRampToValueAtTime(0.001, t + durSec * 0.9);
+      osc.start(t); osc.stop(t + durSec + 0.02);
+      musicNodes.push(osc);
+    }
 
-function sndLineClear(n) {
-  const chords = [[261,329,392],[329,415,523],[392,494,587],[523,659,784,1046]];
-  (chords[n-1]||chords[0]).forEach((f,i) => tone(f,'sine',0.55,0.18,0,i*0.025));
-  if (n===4) {
-    [1046,1318,1568].forEach((f,i) => tone(f,'triangle',0.35,0.13,0,0.2+i*0.05));
-    tone(2093,'sine',0.25,0.08,0,0.5);
-  }
-}
+    function startMusic() {
+      if (musicRunning) return;
+      musicRunning = true;
+      playMusicLoop();
+    }
 
-function sndLevelUp() {
-  [261,329,392,523,659,784,1046,1318].forEach((f,i) => tone(f,'sine',0.32,0.14,0,i*0.09));
-}
+    function stopMusic() {
+      musicRunning = false;
+      if (musicTimeout) { clearTimeout(musicTimeout); musicTimeout = null; }
+      musicNodes.forEach(n => { try { n.stop(); } catch (e) { } });
+      musicNodes = [];
+    }
 
-function sndGameOver() {
-  [523,466,392,349,294,261,220,196,164].forEach((f,i) => tone(f,'sawtooth',0.45,0.16,0,i*0.14));
-}
+    function playMusicLoop() {
+      if (!musicRunning || !audioCtx) return;
+      // BPM rises gently with level: starts at 145, caps at 185
+      const bpm = Math.min(145 + (level - 1) * 4, 185);
+      const beatMs = (60 / bpm) * 1000;   // ms per quarter-note beat
+      let delay = 0;
 
-/* ══════════════════════════════
-   TETRIS ENGINE
-══════════════════════════════ */
-const COLS = 10, ROWS = 20, CELL = 30;
-const W = COLS * CELL, H = ROWS * CELL;
+      // Schedule the full melody
+      KOROBEINIKI.forEach(([freq, beats]) => {
+        const durSec = (beats * beatMs) / 1000;
+        const d = delay;
+        // Keep a single handle; overwriting is fine since we only need the loop timeout
+        setTimeout(() => {
+          if (musicRunning) playMusicNote(freq, durSec * 0.88, 0.10, 'triangle');
+          // add a subtle square-wave harmony one octave down on long notes
+          if (musicRunning && beats >= 1) playMusicNote(freq / 2, durSec * 0.5, 0.03, 'square');
+        }, d);
+        delay += beats * beatMs;
+      });
 
-const gc  = document.getElementById('game-canvas');
-const pc  = document.getElementById('particle-canvas');
-const nc  = document.getElementById('next-canvas');
-const ctx = gc.getContext('2d');
-const ptx = pc.getContext('2d');
-const ntx = nc.getContext('2d');
+      // Schedule bass alongside, cycling every 8 beats
+      let bassDelay = 0;
+      let bassIdx = 0;
+      while (bassDelay < delay) {
+        const [bf, bb] = KORO_BASS[bassIdx % KORO_BASS.length];
+        const bdur = (bb * beatMs) / 1000;
+        const bd = bassDelay;
+        setTimeout(() => {
+          if (musicRunning) playMusicNote(bf * 0.5, bdur * 0.55, 0.04, 'sine');
+        }, bd);
+        bassDelay += bb * beatMs;
+        bassIdx++;
+      }
 
-// Jewel-toned piece styles
-const STYLES = {
-  I:{ base:'#0d4a6b', mid:'#1a80b0', light:'#4bbde0', dark:'#082d40', gem:'#7ee8ff', name:'Saphir' },
-  O:{ base:'#7a5800', mid:'#C9922A', light:'#F0D060', dark:'#4a3200', gem:'#FFD700', name:'Or'     },
-  T:{ base:'#4a0f6b', mid:'#7a28c9', light:'#b060e8', dark:'#250538', gem:'#CC44FF', name:'Améthyste' },
-  S:{ base:'#0a5a22', mid:'#1da840', light:'#4ee878', dark:'#052e10', gem:'#44FF88', name:'Émeraude' },
-  Z:{ base:'#6b0a0a', mid:'#c02828', light:'#e86060', dark:'#380505', gem:'#FF4444', name:'Rubis'  },
-  J:{ base:'#0a2060', mid:'#2050c8', light:'#5888e8', dark:'#050f30', gem:'#4488FF', name:'Lapis'  },
-  L:{ base:'#6b3000', mid:'#c06018', light:'#e8983a', dark:'#351500', gem:'#FF8844', name:'Ambre'  }
-};
+      // Loop after melody finishes
+      musicTimeout = setTimeout(() => {
+        if (musicRunning) playMusicLoop();
+      }, delay + 80);
+    }
 
-const SHAPES = {
-  I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
-  O:[[1,1],[1,1]],
-  T:[[0,1,0],[1,1,1],[0,0,0]],
-  S:[[0,1,1],[1,1,0],[0,0,0]],
-  Z:[[1,1,0],[0,1,1],[0,0,0]],
-  J:[[1,0,0],[1,1,1],[0,0,0]],
-  L:[[0,0,1],[1,1,1],[0,0,0]]
-};
+    function tone(freq, type, dur, vol = 0.25, detune = 0, delay = 0) {
+      if (!audioCtx) return;
+      const t = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.connect(g); g.connect(masterGain);
+      osc.type = type; osc.frequency.value = freq; osc.detune.value = detune;
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t); osc.stop(t + dur + 0.05);
+    }
 
-const KEYS = Object.keys(SHAPES);
-const SPEED_NAMES = ['Andante','Moderato','Allegretto','Allegro','Vivace','Presto','Prestissimo','Furioso','Tempestoso','Imperiale'];
+    const sndMove = () => tone(200, 'triangle', 0.07, 0.07);
+    const sndRotate = () => { tone(392, 'sine', 0.09, 0.1); tone(523, 'sine', 0.06, 0.06, 0, 0.04); };
+    const sndDrop = () => { tone(100, 'sawtooth', 0.14, 0.22); tone(70, 'sine', 0.18, 0.14); };
+    const sndTick = () => tone(165, 'triangle', 0.04, 0.05);
 
-let board, score, lines, level, hiScore=0;
-let cur, next;
-let running=false, paused=false, dead=false;
-let dropMs=800, lastDrop=0, raf=null;
-let combo=0, pieces=0;
-let parts=[];
+    function sndLineClear(n) {
+      const chords = [[261, 329, 392], [329, 415, 523], [392, 494, 587], [523, 659, 784, 1046]];
+      (chords[n - 1] || chords[0]).forEach((f, i) => tone(f, 'sine', 0.55, 0.18, 0, i * 0.025));
+      if (n === 4) {
+        [1046, 1318, 1568].forEach((f, i) => tone(f, 'triangle', 0.35, 0.13, 0, 0.2 + i * 0.05));
+        tone(2093, 'sine', 0.25, 0.08, 0, 0.5);
+      }
+    }
 
-function initBoard() {
-  board = Array.from({length:ROWS},()=>Array(COLS).fill(null));
-}
+    function sndLevelUp() {
+      [261, 329, 392, 523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, 'sine', 0.32, 0.14, 0, i * 0.09));
+    }
 
-function mkPiece() {
-  const k = KEYS[Math.floor(Math.random()*KEYS.length)];
-  return {
-    k, mat: SHAPES[k].map(r=>[...r]),
-    st: STYLES[k],
-    x: Math.floor(COLS/2)-Math.floor(SHAPES[k][0].length/2),
-    y: 0
-  };
-}
+    function sndGameOver() {
+      [523, 466, 392, 349, 294, 261, 220, 196, 164].forEach((f, i) => tone(f, 'sawtooth', 0.45, 0.16, 0, i * 0.14));
+    }
 
-function rotate(m) {
-  const rows=m.length, cols=m[0].length;
-  const r = Array.from({length:cols},()=>Array(rows).fill(0));
-  for(let y=0;y<rows;y++) for(let x=0;x<cols;x++) r[x][rows-1-y]=m[y][x];
-  return r;
-}
+    /* ══════════════════════════════
+       TETRIS ENGINE
+    ══════════════════════════════ */
+    const COLS = 10, ROWS = 20, CELL = 30;
+    const W = COLS * CELL, H = ROWS * CELL;
 
-function valid(p, dx, dy, mat) {
-  const m = mat||p.mat;
-  for(let y=0;y<m.length;y++) for(let x=0;x<m[y].length;x++) {
-    if(!m[y][x]) continue;
-    const nx=p.x+dx+x, ny=p.y+dy+y;
-    if(nx<0||nx>=COLS||ny>=ROWS) return false;
-    if(ny>=0 && board[ny][nx]) return false;
-  }
-  return true;
-}
+    const gc = document.getElementById('game-canvas');
+    const pc = document.getElementById('particle-canvas');
+    const nc = document.getElementById('next-canvas');
+    const ctx = gc.getContext('2d');
+    const ptx = pc.getContext('2d');
+    const ntx = nc.getContext('2d');
 
-function lock() {
-  for(let y=0;y<cur.mat.length;y++) for(let x=0;x<cur.mat[y].length;x++) {
-    if(!cur.mat[y][x]) continue;
-    const ny=cur.y+y;
-    if(ny<0){ die(); return; }
-    board[ny][cur.x+x]=cur.st;
-  }
-  pieces++;
-  clearRows();
-  sndDrop();
-  cur=next; next=mkPiece();
-  if(!valid(cur,0,0)){ die(); }
-  ui();
-}
+    // Jewel-toned piece styles
+    const STYLES = {
+      I: { base: '#0d4a6b', mid: '#1a80b0', light: '#4bbde0', dark: '#082d40', gem: '#7ee8ff', name: 'Saphir' },
+      O: { base: '#7a5800', mid: '#C9922A', light: '#F0D060', dark: '#4a3200', gem: '#FFD700', name: 'Or' },
+      T: { base: '#4a0f6b', mid: '#7a28c9', light: '#b060e8', dark: '#250538', gem: '#CC44FF', name: 'Améthyste' },
+      S: { base: '#0a5a22', mid: '#1da840', light: '#4ee878', dark: '#052e10', gem: '#44FF88', name: 'Émeraude' },
+      Z: { base: '#6b0a0a', mid: '#c02828', light: '#e86060', dark: '#380505', gem: '#FF4444', name: 'Rubis' },
+      J: { base: '#0a2060', mid: '#2050c8', light: '#5888e8', dark: '#050f30', gem: '#4488FF', name: 'Lapis' },
+      L: { base: '#6b3000', mid: '#c06018', light: '#e8983a', dark: '#351500', gem: '#FF8844', name: 'Ambre' }
+    };
 
-function clearRows() {
-  const full=[];
-  for(let y=ROWS-1;y>=0;y--) if(board[y].every(c=>c!==null)) full.push(y);
-  if(!full.length){ combo=0; ui(); return; }
+    const SHAPES = {
+      I: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+      O: [[1, 1], [1, 1]],
+      T: [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
+      S: [[0, 1, 1], [1, 1, 0], [0, 0, 0]],
+      Z: [[1, 1, 0], [0, 1, 1], [0, 0, 0]],
+      J: [[1, 0, 0], [1, 1, 1], [0, 0, 0]],
+      L: [[0, 0, 1], [1, 1, 1], [0, 0, 0]]
+    };
 
-  // line flash
-  const lf=document.getElementById('line-flash');
-  lf.style.opacity='1'; setTimeout(()=>lf.style.opacity='0',150);
+    const KEYS = Object.keys(SHAPES);
+    const SPEED_NAMES = ['Andante', 'Moderato', 'Allegretto', 'Allegro', 'Vivace', 'Presto', 'Prestissimo', 'Furioso', 'Tempestoso', 'Imperiale'];
 
-  full.forEach(y=>spawnLineParts(y));
-  full.forEach(y=>{ board.splice(y,1); board.unshift(Array(COLS).fill(null)); });
+    let board, score, lines, level, hiScore = 0;
+    let cur, next;
+    let running = false, paused = false, dead = false;
+    let dropMs = 800, lastDrop = 0, raf = null;
+    let combo = 0, pieces = 0;
+    let parts = [];
 
-  combo++;
-  const n=full.length;
-  sndLineClear(n);
+    function initBoard() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    }
 
-  const base=[0,100,300,700,1500][n]*level;
-  const cb = combo>1 ? Math.floor(base*0.5*(combo-1)) : 0;
-  score += base+cb;
-  lines += n;
+    function mkPiece() {
+      const k = KEYS[Math.floor(Math.random() * KEYS.length)];
+      return {
+        k, mat: SHAPES[k].map(r => [...r]),
+        st: STYLES[k],
+        x: Math.floor(COLS / 2) - Math.floor(SHAPES[k][0].length / 2),
+        y: 0
+      };
+    }
 
-  const nl = Math.floor(lines/10)+1;
-  if(nl>level){ level=nl; dropMs=Math.max(80,800-(level-1)*80); sndLevelUp(); levelFlash(); }
-  if(score>hiScore) hiScore=score;
-  ui();
-}
+    function rotate(m) {
+      const rows = m.length, cols = m[0].length;
+      const r = Array.from({ length: cols }, () => Array(rows).fill(0));
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) r[x][rows - 1 - y] = m[y][x];
+      return r;
+    }
 
-function levelFlash() {
-  const f=document.getElementById('level-flash');
-  f.classList.add('flash'); setTimeout(()=>f.classList.remove('flash'),450);
-}
+    function valid(p, dx, dy, mat) {
+      const m = mat || p.mat;
+      for (let y = 0; y < m.length; y++) for (let x = 0; x < m[y].length; x++) {
+        if (!m[y][x]) continue;
+        const nx = p.x + dx + x, ny = p.y + dy + y;
+        if (nx < 0 || nx >= COLS || ny >= ROWS) return false;
+        if (ny >= 0 && board[ny][nx]) return false;
+      }
+      return true;
+    }
 
-function spawnLineParts(row) {
-  for(let x=0;x<COLS;x++) {
-    const st = board[row]&&board[row][x] ? board[row][x] : {gem:'#FFD700',light:'#F0D060'};
-    for(let i=0;i<10;i++) {
-      parts.push({
-        x:(x+.5)*CELL, y:(row+.5)*CELL,
-        vx:(Math.random()-.5)*7,
-        vy:(Math.random()-.5)*7-2.5,
-        life:1, decay:.018+Math.random()*.025,
-        r:2+Math.random()*4.5,
-        col:Math.random()<.5?st.gem:st.light,
-        star:Math.random()<.3
+    function lock() {
+      for (let y = 0; y < cur.mat.length; y++) for (let x = 0; x < cur.mat[y].length; x++) {
+        if (!cur.mat[y][x]) continue;
+        const ny = cur.y + y;
+        if (ny < 0) { die(); return; }
+        board[ny][cur.x + x] = cur.st;
+      }
+      pieces++;
+      clearRows();
+      sndDrop();
+      cur = next; next = mkPiece();
+      if (!valid(cur, 0, 0)) { die(); }
+      ui();
+    }
+
+    function clearRows() {
+      const full = [];
+      for (let y = ROWS - 1; y >= 0; y--) if (board[y].every(c => c !== null)) full.push(y);
+      if (!full.length) { combo = 0; ui(); return; }
+
+      // line flash
+      const lf = document.getElementById('line-flash');
+      lf.style.opacity = '1'; setTimeout(() => lf.style.opacity = '0', 150);
+
+      full.forEach(y => spawnLineParts(y));
+      full.forEach(y => { board.splice(y, 1); board.unshift(Array(COLS).fill(null)); });
+
+      combo++;
+      const n = full.length;
+      sndLineClear(n);
+
+      const base = [0, 100, 300, 700, 1500][n] * level;
+      const cb = combo > 1 ? Math.floor(base * 0.5 * (combo - 1)) : 0;
+      score += base + cb;
+      lines += n;
+
+      const nl = Math.floor(lines / 10) + 1;
+      if (nl > level) { level = nl; dropMs = Math.max(80, 800 - (level - 1) * 80); sndLevelUp(); levelFlash(); }
+      if (score > hiScore) hiScore = score;
+      ui();
+    }
+
+    function levelFlash() {
+      const f = document.getElementById('level-flash');
+      f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 450);
+    }
+
+    function spawnLineParts(row) {
+      for (let x = 0; x < COLS; x++) {
+        const st = board[row] && board[row][x] ? board[row][x] : { gem: '#FFD700', light: '#F0D060' };
+        for (let i = 0; i < 10; i++) {
+          parts.push({
+            x: (x + .5) * CELL, y: (row + .5) * CELL,
+            vx: (Math.random() - .5) * 7,
+            vy: (Math.random() - .5) * 7 - 2.5,
+            life: 1, decay: .018 + Math.random() * .025,
+            r: 2 + Math.random() * 4.5,
+            col: Math.random() < .5 ? st.gem : st.light,
+            star: Math.random() < .3
+          });
+        }
+      }
+    }
+
+    function updateParts() {
+      ptx.clearRect(0, 0, W, H);
+      parts = parts.filter(p => p.life > 0);
+      parts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.vx *= 0.97;
+        p.life -= p.decay;
+        const a = Math.max(0, p.life);
+        ptx.save(); ptx.globalAlpha = a;
+        if (p.star) {
+          ptx.fillStyle = p.col;
+          ptx.translate(p.x, p.y); ptx.rotate(p.life * 6);
+          star4(ptx, 0, 0, p.r, p.r * .4);
+        } else {
+          ptx.beginPath(); ptx.arc(p.x, p.y, p.r * a, 0, Math.PI * 2);
+          ptx.fillStyle = p.col; ptx.shadowColor = p.col; ptx.shadowBlur = 8;
+          ptx.fill();
+        }
+        ptx.restore();
       });
     }
-  }
-}
 
-function updateParts() {
-  ptx.clearRect(0,0,W,H);
-  parts=parts.filter(p=>p.life>0);
-  parts.forEach(p=>{
-    p.x+=p.vx; p.y+=p.vy; p.vy+=0.18; p.vx*=0.97;
-    p.life-=p.decay;
-    const a=Math.max(0,p.life);
-    ptx.save(); ptx.globalAlpha=a;
-    if(p.star) {
-      ptx.fillStyle=p.col;
-      ptx.translate(p.x,p.y); ptx.rotate(p.life*6);
-      star4(ptx,0,0,p.r,p.r*.4);
-    } else {
-      ptx.beginPath(); ptx.arc(p.x,p.y,p.r*a,0,Math.PI*2);
-      ptx.fillStyle=p.col; ptx.shadowColor=p.col; ptx.shadowBlur=8;
-      ptx.fill();
-    }
-    ptx.restore();
-  });
-}
-
-function star4(c,cx,cy,ro,ri) {
-  c.beginPath();
-  for(let i=0;i<8;i++){
-    const r=i%2===0?ro:ri, a=(i*Math.PI/4)-Math.PI/2;
-    i===0?c.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):c.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
-  }
-  c.closePath(); c.fill();
-}
-
-/* ─── DRAWING ─── */
-function drawCell(x, y, st, ghost=false) {
-  const px=x*CELL, py=y*CELL, s=CELL;
-  if(ghost) {
-    ctx.save();
-    ctx.strokeStyle=st.mid; ctx.lineWidth=1; ctx.setLineDash([3,2]);
-    ctx.strokeRect(px+2,py+2,s-4,s-4);
-    ctx.fillStyle=st.mid; ctx.globalAlpha=0.12;
-    ctx.fillRect(px+2,py+2,s-4,s-4);
-    ctx.restore(); return;
-  }
-  // gradient face
-  const g=ctx.createLinearGradient(px,py,px+s,py+s);
-  g.addColorStop(0,st.light); g.addColorStop(.45,st.mid); g.addColorStop(1,st.dark);
-  ctx.fillStyle=g; ctx.fillRect(px,py,s,s);
-  // bevels
-  ctx.fillStyle='rgba(255,255,255,0.22)';
-  ctx.fillRect(px,py,s,3); ctx.fillRect(px,py,3,s);
-  ctx.fillStyle='rgba(0,0,0,0.38)';
-  ctx.fillRect(px,py+s-3,s,3); ctx.fillRect(px+s-3,py,3,s);
-  // inner ring
-  ctx.strokeStyle=st.dark; ctx.lineWidth=.6;
-  ctx.strokeRect(px+3.5,py+3.5,s-7,s-7);
-  // gem diamond
-  const gx=px+s/2, gy=py+s/2, gr=5;
-  ctx.save();
-  ctx.fillStyle=st.gem; ctx.shadowColor=st.gem; ctx.shadowBlur=10; ctx.globalAlpha=0.75;
-  ctx.beginPath();
-  ctx.moveTo(gx,gy-gr); ctx.lineTo(gx+gr*.55,gy);
-  ctx.lineTo(gx,gy+gr); ctx.lineTo(gx-gr*.55,gy);
-  ctx.closePath(); ctx.fill();
-  ctx.restore();
-  // gold outer border
-  ctx.strokeStyle='rgba(212,175,55,0.35)'; ctx.lineWidth=.5;
-  ctx.strokeRect(px+.5,py+.5,s-1,s-1);
-}
-
-function ghostY() {
-  let gy=cur.y;
-  while(valid(cur,0,gy-cur.y+1)) gy++;
-  return gy;
-}
-
-function drawBoard() {
-  // dark velvet background
-  ctx.fillStyle='#0d0505'; ctx.fillRect(0,0,W,H);
-  // subtle diagonal pattern
-  ctx.save();
-  ctx.strokeStyle='rgba(212,175,55,0.025)'; ctx.lineWidth=10;
-  for(let i=-ROWS;i<COLS+ROWS;i+=5){
-    ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo((i+ROWS)*CELL,H); ctx.stroke();
-  }
-  ctx.restore();
-  // grid
-  ctx.strokeStyle='rgba(212,175,55,0.07)'; ctx.lineWidth=.4;
-  for(let x=0;x<=COLS;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,H); ctx.stroke(); }
-  for(let y=0;y<=ROWS;y++){ ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(W,y*CELL); ctx.stroke(); }
-  // placed blocks
-  for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++) if(board[y][x]) drawCell(x,y,board[y][x]);
-}
-
-function drawCur() {
-  if(!cur) return;
-  // ghost
-  const gy=ghostY();
-  if(gy!==cur.y) {
-    for(let y=0;y<cur.mat.length;y++) for(let x=0;x<cur.mat[y].length;x++)
-      if(cur.mat[y][x]&&gy+y>=0) drawCell(cur.x+x,gy+y,cur.st,true);
-  }
-  // piece
-  for(let y=0;y<cur.mat.length;y++) for(let x=0;x<cur.mat[y].length;x++)
-    if(cur.mat[y][x]&&cur.y+y>=0) drawCell(cur.x+x,cur.y+y,cur.st);
-}
-
-function drawNext() {
-  ntx.clearRect(0,0,120,80);
-  if(!next) return;
-  const m=next.mat, c=m[0].length, r=m.length;
-  const cs=Math.min(22,Math.floor(Math.min(96/c,60/r)));
-  const ox=Math.floor((120-c*cs)/2), oy=Math.floor((80-r*cs)/2);
-  for(let y=0;y<r;y++) for(let x=0;x<c;x++) if(m[y][x]) {
-    const px=ox+x*cs, py=oy+y*cs, s=cs-1;
-    const g=ntx.createLinearGradient(px,py,px+s,py+s);
-    g.addColorStop(0,next.st.light); g.addColorStop(1,next.st.dark);
-    ntx.fillStyle=g; ntx.fillRect(px,py,s,s);
-    ntx.fillStyle='rgba(255,255,255,0.18)'; ntx.fillRect(px,py,s,2);
-    ntx.strokeStyle='rgba(212,175,55,0.28)'; ntx.lineWidth=.5;
-    ntx.strokeRect(px+.5,py+.5,s-1,s-1);
-  }
-}
-
-function ui() {
-  document.getElementById('score-display').textContent=score.toLocaleString('fr');
-  document.getElementById('level-display').textContent=level;
-  document.getElementById('lines-display').textContent=lines;
-  document.getElementById('hiscore-display').textContent=hiScore.toLocaleString('fr');
-  document.getElementById('piece-count').textContent=pieces;
-  document.getElementById('speed-label').textContent=SPEED_NAMES[Math.min(level-1,SPEED_NAMES.length-1)];
-  const cd=document.getElementById('combo-display');
-  if(combo>1){ cd.textContent=`×${combo} Combo!`; cd.style.color='#FFD700'; cd.style.textShadow='0 0 14px rgba(255,215,0,0.7)'; }
-  else { cd.textContent='—'; cd.style.color='#8B0000'; cd.style.textShadow='none'; }
-}
-
-/* ─── GAME LOOP ─── */
-function loop(ts) {
-  if(!running||paused||dead) return;
-  if(ts-lastDrop>dropMs) {
-    if(valid(cur,0,1)) cur.y++;
-    else lock();
-    lastDrop=ts;
-  }
-  drawBoard(); drawCur(); updateParts(); drawNext();
-  raf=requestAnimationFrame(loop);
-}
-
-function start() {
-  initAudio(); initBoard();
-  score=0; lines=0; level=1; combo=0; pieces=0; dropMs=800; parts=[];
-  cur=mkPiece(); next=mkPiece();
-  running=true; paused=false; dead=false;
-  ['start-screen','pause-screen','gameover-screen'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  ui();
-  lastDrop=performance.now();
-  raf=requestAnimationFrame(loop);
-}
-
-function die() {
-  dead=true; running=false; sndGameOver();
-  document.getElementById('final-score-label').textContent=`Score : ${score.toLocaleString('fr')}`;
-  document.getElementById('final-lines-label').textContent=`${lines} lignes · ${pieces} pièces`;
-  document.getElementById('gameover-screen').classList.remove('hidden');
-  if(raf) cancelAnimationFrame(raf);
-}
-
-function togglePause() {
-  if(!running||dead) return;
-  paused=!paused;
-  document.getElementById('pause-screen').classList.toggle('hidden',!paused);
-  if(!paused){ lastDrop=performance.now(); raf=requestAnimationFrame(loop); }
-}
-
-/* ─── INPUT ─── */
-const keys={};
-document.addEventListener('keydown',e=>{
-  if(e.key==='p'||e.key==='P'){ initAudio(); togglePause(); return; }
-  if(!running||dead||paused) return;
-  switch(e.key){
-    case 'ArrowLeft':  if(valid(cur,-1,0)){ cur.x--; sndMove(); } break;
-    case 'ArrowRight': if(valid(cur,1,0)) { cur.x++; sndMove(); } break;
-    case 'ArrowDown':
-      if(valid(cur,0,1)){ cur.y++; lastDrop=performance.now(); sndTick(); }
-      else lock();
-      break;
-    case 'ArrowUp': {
-      const rot=rotate(cur.mat), orig=cur.mat;
-      cur.mat=rot;
-      if(!valid(cur,0,0)){
-        if(valid(cur,1,0))      cur.x++;
-        else if(valid(cur,-1,0)) cur.x--;
-        else if(valid(cur,2,0)) cur.x+=2;
-        else if(valid(cur,-2,0)) cur.x-=2;
-        else cur.mat=orig;
+    function star4(c, cx, cy, ro, ri) {
+      c.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const r = i % 2 === 0 ? ro : ri, a = (i * Math.PI / 4) - Math.PI / 2;
+        i === 0 ? c.moveTo(cx + r * Math.cos(a), cy + r * Math.sin(a)) : c.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
       }
-      sndRotate(); break;
+      c.closePath(); c.fill();
     }
-    case ' ':
+
+    /* ─── DRAWING ─── */
+    function drawCell(x, y, st, ghost = false) {
+      const px = x * CELL, py = y * CELL, s = CELL;
+      if (ghost) {
+        ctx.save();
+        ctx.strokeStyle = st.mid; ctx.lineWidth = 1; ctx.setLineDash([3, 2]);
+        ctx.strokeRect(px + 2, py + 2, s - 4, s - 4);
+        ctx.fillStyle = st.mid; ctx.globalAlpha = 0.12;
+        ctx.fillRect(px + 2, py + 2, s - 4, s - 4);
+        ctx.restore(); return;
+      }
+      // gradient face
+      const g = ctx.createLinearGradient(px, py, px + s, py + s);
+      g.addColorStop(0, st.light); g.addColorStop(.45, st.mid); g.addColorStop(1, st.dark);
+      ctx.fillStyle = g; ctx.fillRect(px, py, s, s);
+      // bevels
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.fillRect(px, py, s, 3); ctx.fillRect(px, py, 3, s);
+      ctx.fillStyle = 'rgba(0,0,0,0.38)';
+      ctx.fillRect(px, py + s - 3, s, 3); ctx.fillRect(px + s - 3, py, 3, s);
+      // inner ring
+      ctx.strokeStyle = st.dark; ctx.lineWidth = .6;
+      ctx.strokeRect(px + 3.5, py + 3.5, s - 7, s - 7);
+      // gem diamond
+      const gx = px + s / 2, gy = py + s / 2, gr = 5;
+      ctx.save();
+      ctx.fillStyle = st.gem; ctx.shadowColor = st.gem; ctx.shadowBlur = 10; ctx.globalAlpha = 0.75;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy - gr); ctx.lineTo(gx + gr * .55, gy);
+      ctx.lineTo(gx, gy + gr); ctx.lineTo(gx - gr * .55, gy);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+      // gold outer border
+      ctx.strokeStyle = 'rgba(212,175,55,0.35)'; ctx.lineWidth = .5;
+      ctx.strokeRect(px + .5, py + .5, s - 1, s - 1);
+    }
+
+    function ghostY() {
+      let gy = cur.y;
+      while (valid(cur, 0, gy - cur.y + 1)) gy++;
+      return gy;
+    }
+
+    function drawBoard() {
+      // dark velvet background
+      ctx.fillStyle = '#0d0505'; ctx.fillRect(0, 0, W, H);
+      // subtle diagonal pattern
+      ctx.save();
+      ctx.strokeStyle = 'rgba(212,175,55,0.025)'; ctx.lineWidth = 10;
+      for (let i = -ROWS; i < COLS + ROWS; i += 5) {
+        ctx.beginPath(); ctx.moveTo(i * CELL, 0); ctx.lineTo((i + ROWS) * CELL, H); ctx.stroke();
+      }
+      ctx.restore();
+      // grid
+      ctx.strokeStyle = 'rgba(212,175,55,0.07)'; ctx.lineWidth = .4;
+      for (let x = 0; x <= COLS; x++) { ctx.beginPath(); ctx.moveTo(x * CELL, 0); ctx.lineTo(x * CELL, H); ctx.stroke(); }
+      for (let y = 0; y <= ROWS; y++) { ctx.beginPath(); ctx.moveTo(0, y * CELL); ctx.lineTo(W, y * CELL); ctx.stroke(); }
+      // placed blocks
+      for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (board[y][x]) drawCell(x, y, board[y][x]);
+    }
+
+    function drawCur() {
+      if (!cur) return;
+      // ghost
+      const gy = ghostY();
+      if (gy !== cur.y) {
+        for (let y = 0; y < cur.mat.length; y++) for (let x = 0; x < cur.mat[y].length; x++)
+          if (cur.mat[y][x] && gy + y >= 0) drawCell(cur.x + x, gy + y, cur.st, true);
+      }
+      // piece
+      for (let y = 0; y < cur.mat.length; y++) for (let x = 0; x < cur.mat[y].length; x++)
+        if (cur.mat[y][x] && cur.y + y >= 0) drawCell(cur.x + x, cur.y + y, cur.st);
+    }
+
+    function drawNext() {
+      ntx.clearRect(0, 0, 120, 80);
+      if (!next) return;
+      const m = next.mat, c = m[0].length, r = m.length;
+      const cs = Math.min(22, Math.floor(Math.min(96 / c, 60 / r)));
+      const ox = Math.floor((120 - c * cs) / 2), oy = Math.floor((80 - r * cs) / 2);
+      for (let y = 0; y < r; y++) for (let x = 0; x < c; x++) if (m[y][x]) {
+        const px = ox + x * cs, py = oy + y * cs, s = cs - 1;
+        const g = ntx.createLinearGradient(px, py, px + s, py + s);
+        g.addColorStop(0, next.st.light); g.addColorStop(1, next.st.dark);
+        ntx.fillStyle = g; ntx.fillRect(px, py, s, s);
+        ntx.fillStyle = 'rgba(255,255,255,0.18)'; ntx.fillRect(px, py, s, 2);
+        ntx.strokeStyle = 'rgba(212,175,55,0.28)'; ntx.lineWidth = .5;
+        ntx.strokeRect(px + .5, py + .5, s - 1, s - 1);
+      }
+    }
+
+    function ui() {
+      document.getElementById('score-display').textContent = score.toLocaleString('en');
+      document.getElementById('level-display').textContent = level;
+      document.getElementById('lines-display').textContent = lines;
+      document.getElementById('hiscore-display').textContent = hiScore.toLocaleString('en');
+      document.getElementById('piece-count').textContent = pieces;
+      document.getElementById('speed-label').textContent = SPEED_NAMES[Math.min(level - 1, SPEED_NAMES.length - 1)];
+      const cd = document.getElementById('combo-display');
+      if (combo > 1) { cd.textContent = `×${combo} Combo!`; cd.style.color = '#FFD700'; cd.style.textShadow = '0 0 14px rgba(255,215,0,0.7)'; }
+      else { cd.textContent = '—'; cd.style.color = '#8B0000'; cd.style.textShadow = 'none'; }
+    }
+
+    /* ─── GAME LOOP ─── */
+    function loop(ts) {
+      if (!running || paused || dead) return;
+      if (ts - lastDrop > dropMs) {
+        if (valid(cur, 0, 1)) cur.y++;
+        else lock();
+        lastDrop = ts;
+      }
+      drawBoard(); drawCur(); updateParts(); drawNext();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function start() {
+      initAudio(); initBoard();
+      score = 0; lines = 0; level = 1; combo = 0; pieces = 0; dropMs = 800; parts = [];
+      cur = mkPiece(); next = mkPiece();
+      running = true; paused = false; dead = false;
+      ['start-screen', 'pause-screen', 'gameover-screen'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      ui();
+      lastDrop = performance.now();
+      raf = requestAnimationFrame(loop);
+      stopMusic(); startMusic();
+    }
+
+    function die() {
+      dead = true; running = false;
+      stopMusic(); sndGameOver();
+      document.getElementById('final-score-label').textContent = `Score: ${score.toLocaleString('en')}`;
+      document.getElementById('final-lines-label').textContent = `${lines} lines · ${pieces} pieces`;
+      document.getElementById('gameover-screen').classList.remove('hidden');
+      if (raf) cancelAnimationFrame(raf);
+    }
+
+    function togglePause() {
+      if (!running || dead) return;
+      paused = !paused;
+      document.getElementById('pause-screen').classList.toggle('hidden', !paused);
+      if (paused) { stopMusic(); }
+      else { lastDrop = performance.now(); raf = requestAnimationFrame(loop); startMusic(); }
+    }
+
+    /* ─── INPUT ─── */
+    const keys = {};
+    document.addEventListener('keydown', e => {
+      if (e.key === 'p' || e.key === 'P') { initAudio(); togglePause(); return; }
+      if (!running || dead || paused) return;
+      switch (e.key) {
+        case 'ArrowLeft': if (valid(cur, -1, 0)) { cur.x--; sndMove(); } break;
+        case 'ArrowRight': if (valid(cur, 1, 0)) { cur.x++; sndMove(); } break;
+        case 'ArrowDown':
+          if (valid(cur, 0, 1)) { cur.y++; lastDrop = performance.now(); sndTick(); }
+          else lock();
+          break;
+        case 'ArrowUp': {
+          const rot = rotate(cur.mat), orig = cur.mat;
+          cur.mat = rot;
+          if (!valid(cur, 0, 0)) {
+            if (valid(cur, 1, 0)) cur.x++;
+            else if (valid(cur, -1, 0)) cur.x--;
+            else if (valid(cur, 2, 0)) cur.x += 2;
+            else if (valid(cur, -2, 0)) cur.x -= 2;
+            else cur.mat = orig;
+          }
+          sndRotate(); break;
+        }
+        case ' ':
+          e.preventDefault();
+          while (valid(cur, 0, 1)) { cur.y++; score++; }
+          lock(); lastDrop = performance.now();
+          break;
+      }
+      ui();
+    });
+
+    document.getElementById('start-btn').addEventListener('click', start);
+    document.getElementById('restart-btn').addEventListener('click', start);
+
+    // Touch support
+    let tx = 0, ty = 0;
+    gc.addEventListener('touchstart', e => { initAudio(); tx = e.touches[0].clientX; ty = e.touches[0].clientY; e.preventDefault(); }, { passive: false });
+    gc.addEventListener('touchend', e => {
+      if (!running || dead || paused) return;
+      const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+      const ax = Math.abs(dx), ay = Math.abs(dy);
+      if (ax < 12 && ay < 12) {
+        const rot = rotate(cur.mat); cur.mat = rot;
+        if (!valid(cur, 0, 0)) cur.mat = rotate(rotate(rotate(cur.mat)));
+        sndRotate();
+      } else if (ax > ay) {
+        const steps = Math.round(ax / CELL), d = dx > 0 ? 1 : -1;
+        for (let i = 0; i < steps; i++) if (valid(cur, d, 0)) cur.x += d;
+        sndMove();
+      } else if (dy > 0) {
+        while (valid(cur, 0, 1)) cur.y++;
+        lock();
+      }
       e.preventDefault();
-      while(valid(cur,0,1)){ cur.y++; score++; }
-      lock(); lastDrop=performance.now();
-      break;
-  }
-  ui();
-});
+    }, { passive: false });
 
-document.getElementById('start-btn').addEventListener('click',start);
-document.getElementById('restart-btn').addEventListener('click',start);
-
-// Touch support
-let tx=0,ty=0;
-gc.addEventListener('touchstart',e=>{ initAudio(); tx=e.touches[0].clientX; ty=e.touches[0].clientY; e.preventDefault(); },{passive:false});
-gc.addEventListener('touchend',e=>{
-  if(!running||dead||paused) return;
-  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
-  const ax=Math.abs(dx), ay=Math.abs(dy);
-  if(ax<12&&ay<12){
-    const rot=rotate(cur.mat); cur.mat=rot;
-    if(!valid(cur,0,0)) cur.mat=rotate(rotate(rotate(cur.mat)));
-    sndRotate();
-  } else if(ax>ay) {
-    const steps=Math.round(ax/CELL), d=dx>0?1:-1;
-    for(let i=0;i<steps;i++) if(valid(cur,d,0)) cur.x+=d;
-    sndMove();
-  } else if(dy>0) {
-    while(valid(cur,0,1)) cur.y++;
-    lock();
-  }
-  e.preventDefault();
-},{passive:false});
-
-// Initial render
-ctx.fillStyle='#0d0505'; ctx.fillRect(0,0,W,H); drawNext();
-</script>
+    // Initial render
+    ctx.fillStyle = '#0d0505'; ctx.fillRect(0, 0, W, H); drawNext();
+  </script>
 </body>
+
 </html>
