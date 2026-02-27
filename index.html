@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>AI Portfolio Home</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f49d25",
+                        "background-light": "#fdf7f2",
+                        "background-dark": "#0d0907",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-border {
+            position: relative;
+        }
+
+        .neon-border::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(45deg, #f49d25, #ef4444, #f59e0b, transparent, transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .bg-mesh {
+            background-color: #0d0907;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(244, 157, 37, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(239, 68, 68, 0.15) 0px, transparent 50%);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden">
+    <div class="relative min-h-screen flex flex-col bg-mesh">
+        <!-- Header -->
+        <header class="sticky top-0 z-50 glass border-b border-white/5 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-8 h-8 rounded bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(244,157,37,0.5)]">
+                    <span class="material-symbols-outlined text-white text-xl">corporate_fare</span>
+                </div>
+                <h1 class="text-lg font-bold tracking-tight">Montykona INC</h1>
+            </div>
+            <div class="text-right">
+                <div id="datetime-display"
+                    class="text-xs sm:text-sm font-medium text-slate-300 font-mono tracking-tight">
+                </div>
+            </div>
+        </header>
+        <script>
+            function updateDateTime() {
+                const now = new Date();
+                const dateOpts = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+                const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+                const dateStr = now.toLocaleDateString('en-US', dateOpts);
+                const timeStr = now.toLocaleTimeString('en-US', timeOpts);
+                document.getElementById('datetime-display').textContent = `${dateStr}  •  ${timeStr}`;
+            }
+            setInterval(updateDateTime, 1000);
+            updateDateTime();
+        </script>
+        <!-- Main Content -->
+        <main class="flex-1 px-6 pt-8 pb-32">
+            <!-- Hero Section -->
+            <section class="mb-12 mt-4 text-center">
+                <h2
+                    class="text-5xl md:text-6xl font-extrabold leading-tight tracking-tighter mb-6 text-slate-900 dark:text-white drop-shadow-lg">
+                    AI Projects <span class="text-primary">&amp;</span> Demos
+                </h2>
+                <div class="glass p-4 rounded-xl border-white/5 shadow-2xl">
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Exploring the intersection of intelligence and design through high-performance web experiences.
+                    </p>
+                </div>
+            </section>
+            <!-- Category Sections -->
+            <div id="categories-root" class="space-y-6">
+            </div>
+
+            <style>
+                .category-grid {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 0.75rem;
+                }
+
+                @media (min-width: 768px) {
+                    .category-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+
+                @media (min-width: 1024px) {
+                    .category-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+
+                .category-body {
+                    overflow: hidden;
+                    transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.35s ease;
+                    max-height: 4000px;
+                    opacity: 1;
+                }
+
+                .category-body.collapsed {
+                    max-height: 0;
+                    opacity: 0;
+                }
+
+                .chevron {
+                    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .chevron.rotated {
+                    transform: rotate(-90deg);
+                }
+            </style>
+
+            <script>
+                /* ─── Data ─────────────────────────────────── */
+                const categories = [
+                    {
+                        id: 'other',
+                        label: 'Projects & Demos',
+                        icon: 'dashboard',
+                        accentColor: '#f49d25',
+                        projects: [
+                            "DigitalClock",
+                            "Electronic Battery",
+                            "Greek-Pack Man",
+                            "Metallic balls",
+                            "Monarquias",
+                            "Tridimensional Sine Wave"
+                        ]
+                    },
+                    {
+                        id: 'tetris',
+                        label: 'Tetris Games',
+                        icon: 'view_quilt',
+                        accentColor: '#818cf8',
+                        projects: [
+                            "Tetris",
+                            "Model GLM-5_Z.ai Tetris",
+                            "Model.Cloud Sonet 4.6 Tetris"
+                        ]
+                    },
+                    {
+                        id: 'snake',
+                        label: 'Snake Games',
+                        icon: 'phishing',
+                        accentColor: '#34d399',
+                        projects: [
+                            "Snake.Realistic",
+                            "Model Copilot Neon Snake",
+                            "Model Gemma 27b Ollama Snake",
+                            "Model GemniFlash3 Antygravity Snake",
+                            "Model GLM-5_Z.ai Neon Snake",
+                            "Model GPT-OSS20B Ollama Snake",
+                            "Model MistralNemo12B Ollama Snake",
+                            "Model Ollama Cloud Snake",
+                            "Model Qwen3-coder-30b-a3b-instruct LMStudio Snake",
+                            "Model Qwen3-coder-next LMStudio 8bits Snake",
+                            "Model.Cloud Sonet 4.6 Garden Snake",
+                            "Model.Cloud Sonet 4.6 Graffiti Snake",
+                            "Model.Cloud Sonet4.5"
+                        ]
+                    }
+                ];
+
+                /* ─── Helpers ───────────────────────────────── */
+                function getIcon(name, categoryId) {
+                    const n = name.toLowerCase();
+                    if (categoryId === 'snake') return 'phishing';
+                    if (categoryId === 'tetris') return 'view_quilt';
+                    if (n.includes('clock')) return 'schedule';
+                    if (n.includes('snake')) return 'phishing';
+                    if (n.includes('tetris')) return 'view_quilt';
+                    if (n.includes('pack man') || n.includes('pacman') || n.includes('greek')) return 'sports_esports';
+                    if (n.includes('ball')) return 'public';
+                    if (n.includes('battery')) return 'bolt';
+                    if (n.includes('monarquia')) return 'flag';
+                    if (n.includes('wave') || n.includes('sine')) return 'waves';
+                    if (n.includes('garden')) return 'yard';
+                    if (n.includes('graffiti')) return 'brush';
+                    if (n.includes('copilot')) return 'autopilot';
+                    if (n.includes('model') || n.includes('ai') || n.includes('gpt') || n.includes('qwen') || n.includes('gemma') || n.includes('mistral') || n.includes('glm') || n.includes('ollama')) return 'psychology';
+                    return 'folder';
+                }
+
+                function buildCard(project, accentColor, categoryId) {
+                    const icon = getIcon(project, categoryId);
+                    const folderUrl = `./${encodeURIComponent(project)}/index.html`;
+                    return `
+                    <a href="${folderUrl}" class="relative overflow-hidden neon-border rounded-xl glass group block transition-transform hover:scale-[1.02] cursor-pointer min-h-[90px]" style="text-decoration:none;">
+                        <div class="absolute inset-0 w-[400%] h-[400%] origin-top-left scale-[0.25] pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity duration-500 z-0">
+                            <iframe src="${folderUrl}" loading="lazy" class="w-full h-full border-0" scrolling="no" tabindex="-1" sandbox="allow-scripts allow-same-origin"></iframe>
+                        </div>
+                        <div class="relative z-10 p-3 h-full flex items-center gap-3 bg-gradient-to-r from-background-dark/95 via-background-dark/80 to-transparent">
+                            <div class="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors backdrop-blur-md border border-white/10 group-hover:scale-110" style="background:${accentColor}22;">
+                                <span class="material-symbols-outlined" style="color:${accentColor};">${icon}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-sm mb-0.5 text-slate-100 truncate drop-shadow-md">${project}</h4>
+                                <p class="text-[10px] text-slate-400 group-hover:text-primary transition-colors flex items-center gap-1 font-medium"><span class="material-symbols-outlined text-[12px]">play_circle</span> View Demo &rarr;</p>
+                            </div>
+                        </div>
+                    </a>`;
+                }
+
+                function buildSection(cat) {
+                    const count = cat.projects.length;
+                    const cards = cat.projects.map(p => buildCard(p, cat.accentColor, cat.id)).join('');
+                    return `
+                    <div class="category-section">
+                        <!-- Section Header -->
+                        <button
+                            onclick="toggleCategory('${cat.id}')"
+                            class="w-full flex items-center gap-3 mb-4 group focus:outline-none"
+                            aria-expanded="true"
+                            aria-controls="cat-body-${cat.id}"
+                        >
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center shadow-md border border-white/10 shrink-0" style="background:${cat.accentColor}22;">
+                                <span class="material-symbols-outlined text-xl" style="color:${cat.accentColor};">${cat.icon}</span>
+                            </div>
+                            <h3 class="text-xl font-bold flex-1 text-left group-hover:text-primary transition-colors">${cat.label}</h3>
+                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full border border-white/10 text-slate-300" style="background:${cat.accentColor}22;color:${cat.accentColor};">${count} item${count !== 1 ? 's' : ''}</span>
+                            <span class="material-symbols-outlined text-slate-400 chevron" id="chevron-${cat.id}">expand_more</span>
+                        </button>
+                        <!-- Section Body -->
+                        <div class="category-body" id="cat-body-${cat.id}">
+                            <div class="category-grid">
+                                ${cards}
+                            </div>
+                        </div>
+                        <hr class="border-white/5 mt-6" />
+                    </div>`;
+                }
+
+                /* ─── Render ────────────────────────────────── */
+                const root = document.getElementById('categories-root');
+                categories.forEach(cat => root.insertAdjacentHTML('beforeend', buildSection(cat)));
+
+                // Add the AI Models wide card after all categories
+                const modelsCardHTML = `
+                <a href="models.html" class="col-span-1 md:col-span-2 lg:col-span-3 relative overflow-hidden neon-border rounded-xl glass group block transition-transform hover:scale-[1.01] cursor-pointer mt-2 min-h-[140px]" style="text-decoration: none;">
+                    <div class="absolute right-0 top-0 bottom-0 w-1/2 md:w-1/3 opacity-20 group-hover:opacity-40 transition-all duration-500 bg-no-repeat bg-contain bg-right mix-blend-screen mr-6 mb-2 mt-4" style="background-image: url('favicon.png');"></div>
+                    <div class="relative z-10 p-6 md:p-8 h-full flex flex-col justify-center bg-gradient-to-r from-background-dark via-background-dark/95 to-transparent w-[85%]">
+                        <h4 class="font-bold text-2xl md:text-3xl mb-2 text-white drop-shadow-lg flex items-center gap-3">
+                            Our AI Models <span class="material-symbols-outlined text-primary text-3xl md:text-4xl shadow-sm">neurology</span>
+                        </h4>
+                        <p class="text-slate-300 text-xs md:text-sm max-w-xl mb-4 drop-shadow-md leading-relaxed">Discover the intelligence engines powering these demos, from proprietary pioneers to cutting-edge open weights.</p>
+                        <div class="bg-primary hover:bg-white text-white hover:text-black transition-colors px-6 py-2 rounded-lg font-bold text-xs md:text-sm w-fit flex items-center gap-2 shadow-[0_0_15px_rgba(244,157,37,0.4)]">
+                            View Models Ecosystem <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>`;
+                root.insertAdjacentHTML('beforeend', modelsCardHTML);
+
+                /* ─── Toggle ────────────────────────────────── */
+                function toggleCategory(id) {
+                    const body = document.getElementById('cat-body-' + id);
+                    const chevron = document.getElementById('chevron-' + id);
+                    const btn = body.previousElementSibling;
+                    const isOpen = !body.classList.contains('collapsed');
+                    body.classList.toggle('collapsed', isOpen);
+                    chevron.classList.toggle('rotated', isOpen);
+                    btn.setAttribute('aria-expanded', String(!isOpen));
+                }
+            </script>
+        </main>
+
+        <!-- Disclaimer -->
+        <section class="max-w-4xl mx-auto w-full px-6 pb-12">
+            <div
+                class="glass border-t border-l border-white/5 rounded-2xl p-6 bg-gradient-to-br from-background-dark/80 to-transparent flex gap-4 items-start shadow-xl">
+                <span class="material-symbols-outlined text-amber-500 mt-0.5 opacity-80 shrink-0">info</span>
+                <div>
+                    <h5 class="text-slate-200 font-bold text-sm mb-1 uppercase tracking-wider">Disclaimer regarding
+                        these demos</h5>
+                    <p class="text-slate-400 text-xs md:text-sm leading-relaxed">
+                        The web applications and games showcased in this portfolio have been generated completely
+                        automatically by various Artificial Intelligence models. As such, they may contain unexpected
+                        errors, unoptimized code, or features that are not fully functional. They serve purely as a
+                        conceptual showcase of what is achievable in a very simplistic and rapid manner using modern AI
+                        code generation capabilities.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Footer -->
+        <footer class="glass border-t border-white/5 px-6 py-4 backdrop-blur-md text-center shadow-lg mt-auto">
+            <div class="text-xs text-slate-400 font-medium tracking-wide">
+                &copy; <span id="current-year"></span> Montykona INC. All rights reserved.
+            </div>
+        </footer>
+        <script>
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+        </script>
+    </div>
+</body>
+
+</html>

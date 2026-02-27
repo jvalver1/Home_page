@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Labyrinth of the Gods - Greek Pac-Man</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Philosopher:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="game-container">
+      <!-- Greek Key Border Decoration -->
+      <div class="greek-border-top"></div>
+      <div class="greek-border-bottom"></div>
+
+      <!-- Header -->
+      <header class="game-header">
+        <h1 class="game-title">ΛΑΒΥΡΙΝΘΟΣ ΤΩΝ ΘΕΩΝ</h1>
+        <p class="game-subtitle">Labyrinth of the Gods</p>
+      </header>
+
+      <!-- Score Panel -->
+      <div class="score-panel">
+        <div class="score-item">
+          <span class="label">SCORE</span>
+          <span class="value" id="score">0</span>
+        </div>
+        <div class="score-item">
+          <span class="label">HIGH SCORE</span>
+          <span class="value" id="highScore">0</span>
+        </div>
+        <div class="score-item">
+          <span class="label">LEVEL</span>
+          <span class="value" id="level">1</span>
+        </div>
+        <div class="lives-container">
+          <span class="label">LIVES</span>
+          <div id="lives" class="lives-display"></div>
+        </div>
+      </div>
+
+      <!-- Game Canvas -->
+      <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="660" height="720"></canvas>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="overlay-screen">
+          <div class="screen-content">
+            <h2>Welcome, Hermes!</h2>
+            <p class="instructions">
+              Navigate the Minotaur's labyrinth and collect all the golden
+              drachmas.
+            </p>
+            <div class="controls-info">
+              <h3>Controls</h3>
+              <div class="key-grid">
+                <div class="key">↑</div>
+                <div class="key">←</div>
+                <div class="key">↓</div>
+                <div class="key">→</div>
+              </div>
+              <p>Use arrow keys to move</p>
+            </div>
+            <div class="monsters-info">
+              <h3>Beware the Monsters!</h3>
+              <div class="monster-list">
+                <div class="monster-item">
+                  <span class="monster-icon medusa">●</span> Medusa - The Chaser
+                </div>
+                <div class="monster-item">
+                  <span class="monster-icon minotaur">●</span> Minotaur - The
+                  Ambusher
+                </div>
+                <div class="monster-item">
+                  <span class="monster-icon harpy">●</span> Harpy - The
+                  Patroller
+                </div>
+                <div class="monster-item">
+                  <span class="monster-icon cyclops">●</span> Cyclops - The
+                  Wanderer
+                </div>
+              </div>
+            </div>
+            <p class="power-tip">
+              💫 Consume Ambrosia to gain divine power and defeat the monsters!
+            </p>
+            <button id="startButton" class="game-button">BEGIN QUEST</button>
+          </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="overlay-screen hidden">
+          <div class="screen-content">
+            <h2>Quest Complete!</h2>
+            <p class="final-score">
+              Final Score: <span id="finalScore">0</span>
+            </p>
+            <p class="message" id="gameOverMessage"></p>
+            <button id="restartButton" class="game-button">QUEST AGAIN</button>
+          </div>
+        </div>
+
+        <!-- Pause Screen -->
+        <div id="pauseScreen" class="overlay-screen hidden">
+          <div class="screen-content">
+            <h2>PAUSED</h2>
+            <p>Press SPACE to continue</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="game-footer">
+        <p>
+          Press <kbd>SPACE</kbd> to pause • Press <kbd>M</kbd> to toggle sound
+        </p>
+      </footer>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="bgMusic" loop>
+      <source
+        src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="
+        type="audio/wav"
+      />
+    </audio>
+    <audio id="collectSound"></audio>
+    <audio id="powerUpSound"></audio>
+    <audio id="eatMonsterSound"></audio>
+    <audio id="deathSound"></audio>
+    <audio id="levelCompleteSound"></audio>
+
+    <script src="game.js"></script>
+  </body>
+</html>

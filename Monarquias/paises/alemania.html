@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de Alemania - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn">
+            <span>⬅</span> Menú Principal
+        </a>
+        <div class="app-title">ALEMANIA</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Alemana</h1>
+            <p id="pageSub">Del Sacro Imperio Romano al Káiser</p>
+        </div>
+
+        <div class="timeline-container" id="timeline"></div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS ALEMANIA ---
+        const DB = [
+            // SACRO IMPERIO (Selección Clave)
+            { type: 'gap', title: {es:"Sacro Imperio Romano Germánico", en:"Holy Roman Empire"}, desc: {es:"Primer Reich (962-1806)", en:"First Reich (962-1806)"}, y:"962-1806" },
+            
+            // Otónidas
+            { type: 'king', n: "Otón I el Grande", y: "936-973", d: "Otónida", c: "d-black", i: "eagle", born: "Sajonia", died: "60", succ: "Otón II", facts: {es:["Fundador del Sacro Imperio", "Victoria en Lechfeld contra húngaros", "Reformador de la Iglesia"], en:["Founder of Holy Roman Empire", "Defeated Hungarians at Lechfeld", "Church reformer"]} },
+            { type: 'king', n: "Otón II", y: "973-983", d: "Otónida", c: "d-black", i: "eagle", born: "Sajonia", died: "28", succ: "Otón III", facts: {es:["Consolidó el sistema imperial", "Casado con la princesa bizantina Teófano"], en:["Consolidated imperial system", "Married Byzantine princess Theophanu"]} },
+            
+            // Salios / Hohenstaufen
+            { type: 'king', n: "Enrique IV", y: "1056-1105", d: "Salia", c: "d-black", i: "eagle", born: "Goslar", died: "55", succ: "Enrique V", facts: {es:["Humillación de Canossa", "Conflicto de las Investiduras con el Papa"], en:["Walk to Canossa", "Investiture Controversy with Pope"]} },
+            { type: 'king', n: "Federico I Barbarroja", y: "1155-1190", d: "Hohenstaufen", c: "d-black", i: "eagle", born: "Haguenau", died: "67", succ: "Enrique VI", facts: {es:["El emperador legendario", "Luchó en la 3ª Cruzada", "Conflicto con ciudades italianas"], en:["Legendary emperor", "Fought in 3rd Crusade", "Conflict with Italian cities"]} },
+            { type: 'king', n: "Federico II", y: "1220-1250", d: "Hohenstaufen", c: "d-black", i: "eagle", born: "Jesi", died: "55", succ: "Conrado IV", facts: {es:["'Stupor Mundi' (Asombro del mundo)", "Rey de Sicilia y Jerusalén", "Excomulgado varias veces"], en:["'Stupor Mundi'", "King of Sicily and Jerusalem", "Excommunicated multiple times"]} },
+
+            // Habsburgo (Selección)
+            { type: 'king', n: "Carlos V", y: "1519-1556", d: "Habsburgo", c: "d-gold", i: "eagle", born: "Gante", died: "58", succ: "Fernando I", facts: {es:["Reforma Protestante (Lutero)", "Dieta de Worms", "Abdicó el imperio en su hermano"], en:["Protestant Reformation", "Diet of Worms", "Abdicated empire to brother"]} },
+            { type: 'king', n: "Fernando I", y: "1556-1564", d: "Habsburgo", c: "d-gold", i: "eagle", born: "Alcalá (Esp)", died: "61", succ: "Maximiliano II", facts: {es:["Paz de Augsburgo (Cuius regio, eius religio)", "Consolidó dominio Habsburgo en Austria"], en:["Peace of Augsburg", "Consolidated Habsburg rule in Austria"]} },
+            
+            // FIN SACRO IMPERIO
+            { type: 'gap', title: {es:"Confederación Germánica", en:"German Confederation"}, desc: {es:"Napoleón disuelve el Imperio / Fragmentación", en:"Napoleon dissolves Empire / Fragmentation"}, y:"1806-1871" },
+
+            // IMPERIO ALEMÁN (II REICH) - HOHENZOLLERN
+            { type: 'king', n: "Guillermo I", y: "1871-1888", d: "Hohenzollern", c: "d-red", i: "eagle", born: "Berlín", died: "90", succ: "Federico III", facts: {es:["Primer Káiser Alemán", "Unificación de Alemania (Bismarck)", "Guerra Franco-Prusiana"], en:["First German Kaiser", "Unification (Bismarck)", "Franco-Prussian War"]} },
+            { type: 'king', n: "Federico III", y: "1888", d: "Hohenzollern", c: "d-red", i: "eagle", born: "Potsdam", died: "56", succ: "Guillermo II", facts: {es:["El Rey de los 99 días", "Liberal y progresista", "Murió de cáncer de laringe"], en:["99 Days King", "Liberal and progressive", "Died of throat cancer"]} },
+            { type: 'king', n: "Guillermo II", y: "1888-1918", d: "Hohenzollern", c: "d-red", i: "eagle", born: "Potsdam", died: "82", succ: "República", facts: {es:["Último Káiser", "Destituyó a Bismarck", "I Guerra Mundial y exilio"], en:["Last Kaiser", "Dismissed Bismarck", "WWI and exile"]} },
+
+            // HISTORIA MODERNA
+            { type: 'gap', title: {es:"República de Weimar", en:"Weimar Republic"}, desc: {es:"1918-1933 (Democracia inestable)", en:"1918-1933 (Unstable democracy)"}, y:"1918-1933" },
+            { type: 'gap', title: {es:"III Reich (Nazi)", en:"Third Reich"}, desc: {es:"1933-1945 (Dictadura de Hitler)", en:"1933-1945 (Hitler Dictatorship)"}, y:"1933-1945" },
+            { type: 'gap', title: {es:"Alemania Dividida", en:"Divided Germany"}, desc: {es:"RFA y RDA (Muro de Berlín)", en:"West & East Germany (Berlin Wall)"}, y:"1949-1990" },
+            { type: 'gap', title: {es:"Alemania Reunificada", en:"Reunified Germany"}, desc: {es:"1990-Presente (República Federal)", en:"1990-Present (Federal Republic)"}, y:"1990-Pte" }
+        ];
+
+        function getSVG(t) {
+            // Reutilizamos el águila imperial
+            const c = {y:"#f1c40f", k:"#2c3e50"};
+            const shield = 'd="M20 10 h60 v50 a30 30 0 0 1 -60 0 z"';
+            let p = '';
+            
+            if(t==='eagle') p=`<path ${shield} fill="${c.y}" stroke="${c.k}"/><path d="M30 30 h40 v20 h-40 z" fill="${c.k}"/>`;
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+            const labels = { es: { born:"Nace", died:"Muere", succ:"Sucesor" }, en: { born:"Born", died:"Died", succ:"Successor" } }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                if (item.type === 'gap') {
+                    card.className = 'gap-card';
+                    card.innerHTML = `<div class="gap-title">${item.title[lang]}</div><div style="font-weight:bold; font-size:1.2em; color:#e74c3c;">${item.y}</div>${getSVG('gap')}<div class="gap-desc" style="margin-top:10px">${item.desc[lang]}</div>`;
+                } else {
+                    card.className = `monarch-card ${item.c}`;
+                    const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                    card.innerHTML = `<div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div><div class="card-header"><div class="monarch-name">${item.n}</div>${getSVG(item.i)}</div><div class="years">${item.y}</div><div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div><div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div><div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div><div class="events-box"><ul class="events-list">${facts}</ul></div>`;
+                }
+                container.appendChild(card);
+            });
+        }
+        renderTimeline();
+    </script>
+</body>
+</html>

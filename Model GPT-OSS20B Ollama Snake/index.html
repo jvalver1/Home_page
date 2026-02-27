@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake – Arrow‑Key Edition</title>
+<style>
+  body { background:#222; color:#eee; font-family:Arial, sans-serif; text-align:center; }
+  canvas { background:#000; display:block; margin:20px auto; border:2px solid #555; }
+  #score { margin-top:-10px; }
+</style>
+</head>
+<body>
+
+<h1>Snake</h1>
+<canvas id="gameCanvas" width="600" height="400"></canvas>
+<p id="score">Score: 0</p>
+
+<!-- Sound effects -->
+<audio id="eatSound">
+  <source src="food.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+<audio id="deadSound">
+  <source src="gameover.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+<script>
+(() => {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreElem = document.getElementById('score');
+  const eatSound = document.getElementById('eatSound');
+  const deadSound = document.getElementById('deadSound');
+
+  const blockSize = 20;                // pixel size of one grid square
+  const rows = canvas.height / blockSize;
+  const cols = canvas.width / blockSize;
+
+  let snake = [{x: Math.floor(cols/2), y: Math.floor(rows/2)}];
+  let dir = {x: 0, y: -1};          // starts moving up
+  let pendingDir = null;            // queued direction change
+  let food = spawnFood();
+  let score = 0;
+  let gameOver = false;
+
+  // --------- game loop ------------------------------------
+  function loop() {
+    if (gameOver) return;
+
+    // Handle direction change
+    if (pendingDir) {
+      if (!isOpposite(dir, pendingDir)) dir = pendingDir;
+      pendingDir = null;
+    }
+
+    // Move snake
+    const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+
+    // Collision with walls
+    if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) {
+      return endGame();
+    }
+
+    // Collision with self
+    if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+      return endGame();
+    }
+
+    snake.unshift(head); // add new head
+
+    // Eating food
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      scoreElem.textContent = 'Score: ' + score;
+      eatSound.play();
+      food = spawnFood();
+    } else {
+      snake.pop(); // remove tail
+    }
+
+    draw();
+    setTimeout(loop, 100); // speed (ms)
+  }
+
+  // --------- drawing --------------------------------------
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // draw food
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(food.x*blockSize, food.y*blockSize, blockSize, blockSize);
+
+    // draw snake
+    ctx.fillStyle = '#00ff00';
+    snake.forEach((seg, idx) => {
+      ctx.fillRect(seg.x*blockSize, seg.y*blockSize, blockSize, blockSize);
+    });
+  }
+
+  // --------- helpers --------------------------------------
+  function spawnFood() {
+    let pos;
+    do {
+      pos = {
+        x: Math.floor(Math.random()*cols),
+        y: Math.floor(Math.random()*rows)
+      };
+    } while (snake.some(seg => seg.x === pos.x && seg.y === pos.y));
+    return pos;
+  }
+
+  function isOpposite(d1, d2) {
+    return d1.x + d2.x === 0 && d1.y + d2.y === 0;
+  }
+
+  function endGame() {
+    gameOver = true;
+    deadSound.play();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#000';
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', canvas.width/2, canvas.height/2);
+  }
+
+  // --------- input ----------------------------------------
+  document.addEventListener('keydown', e => {
+    switch(e.key) {
+      case 'ArrowUp':    pendingDir = {x: 0, y: -1}; break;
+      case 'ArrowDown':  pendingDir = {x: 0, y:  1}; break;
+      case 'ArrowLeft':  pendingDir = {x: -1, y: 0}; break;
+      case 'ArrowRight': pendingDir = {x: 1, y: 0};  break;
+    }
+  });
+
+  // Start the game
+  draw();
+  setTimeout(loop, 100);
+})();
+</script>
+</body>
+</html>

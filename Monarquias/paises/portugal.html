@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de Portugal - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn"><span>⬅</span> Menú</a>
+        <div class="app-title">PORTUGAL</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Portuguesa</h1>
+            <p id="pageSub">De la Reconquista a la República</p>
+        </div>
+        <div class="timeline-container" id="timeline"></div>
+    </div>
+
+    <script>
+        const DB = [
+            // BORGOÑA
+            { type: 'king', n: "Afonso I (El Conquistador)", y: "1139-1185", d: "Borgoña", c: "d-blue", i: "shield", born: "Guimarães", died: "76", succ: "Sancho I", facts: {es:["Primer Rey de Portugal", "Batalla de Ourique", "Independencia de León"], en:["First King of Portugal", "Battle of Ourique", "Independence from Leon"]} },
+            { type: 'king', n: "Dinis I (El Labrador)", y: "1279-1325", d: "Borgoña", c: "d-blue", i: "shield", born: "Lisboa", died: "63", succ: "Afonso IV", facts: {es:["Fundó la Universidad de Coímbra", "Promovió la agricultura", "Portugués como lengua oficial"], en:["Founded U. of Coimbra", "Promoted agriculture", "Portuguese as official language"]} },
+            
+            // AVIS
+            { type: 'gap', title: {es:"Crisis de 1383-1385", en:"1383-1385 Crisis"}, desc: {es:"Interregno y Batalla de Aljubarrota", en:"Interregnum & Battle of Aljubarrota"}, y:"1383-1385" },
+            { type: 'king', n: "Juan I", y: "1385-1433", d: "Avis", c: "d-green", i: "shield", born: "Lisboa", died: "76", succ: "Eduardo I", facts: {es:["Maestre de Avis", "Alianza con Inglaterra (la más antigua)", "Inicio de la expansión ultramarina"], en:["Master of Aviz", "Alliance with England", "Start of overseas expansion"]} },
+            { type: 'king', n: "Manuel I (El Afortunado)", y: "1495-1521", d: "Avis", c: "d-green", i: "shield", born: "Alcochete", died: "52", succ: "Juan III", facts: {es:["Vasco da Gama llega a India", "Descubrimiento de Brasil", "Estilo Manuelino"], en:["Vasco da Gama reaches India", "Discovery of Brazil", "Manueline style"]} },
+            { type: 'king', n: "Sebastián I", y: "1557-1578", d: "Avis", c: "d-green", i: "shield", born: "Lisboa", died: "24", succ: "Enrique I", facts: {es:["El Deseado", "Desapareció en la Batalla de Alcazarquivir", "Mito del Sebastianismo"], en:["The Desired", "Vanished at Battle of Alcácer Quibir", "Sebastianism myth"]} },
+            
+            // HABSBURGO (Union Iberica)
+            { type: 'king', n: "Felipe I (II de España)", y: "1581-1598", d: "Habsburgo", c: "d-black", i: "eagle", born: "Valladolid", died: "71", succ: "Felipe II", facts: {es:["Unión Ibérica", "Rey de España y Portugal"], en:["Iberian Union", "King of Spain and Portugal"]} },
+            { type: 'king', n: "Felipe III (IV de España)", y: "1621-1640", d: "Habsburgo", c: "d-black", i: "eagle", born: "Valladolid", died: "60", succ: "Juan IV", facts: {es:["Guerra de Restauración", "Pérdida del trono portugués"], en:["Restoration War", "Loss of Portuguese throne"]} },
+
+            // BRAGANZA
+            { type: 'king', n: "Juan IV", y: "1640-1656", d: "Braganza", c: "d-red", i: "shield", born: "Vila Viçosa", died: "52", succ: "Afonso VI", facts: {es:["El Restaurador", "Independencia de España", "Fundador Dinastía Braganza"], en:["The Restorer", "Independence from Spain", "Founder of Braganza"]} },
+            { type: 'king', n: "Juan V", y: "1706-1750", d: "Braganza", c: "d-red", i: "shield", born: "Lisboa", died: "60", succ: "José I", facts: {es:["El Magnánimo", "Oro de Brasil", "Construcción Palacio de Mafra"], en:["The Magnanimous", "Gold from Brazil", "Built Mafra Palace"]} },
+            { type: 'king', n: "José I", y: "1750-1777", d: "Braganza", c: "d-red", i: "shield", born: "Lisboa", died: "62", succ: "María I", facts: {es:["Terremoto de Lisboa (1755)", "Gobierno del Marqués de Pombal"], en:["Lisbon Earthquake (1755)", "Rule of Marquis of Pombal"]} },
+            { type: 'king', n: "Juan VI", y: "1816-1826", d: "Braganza", c: "d-red", i: "shield", born: "Lisboa", died: "58", succ: "Pedro IV", facts: {es:["Corte en Brasil (Guerras Napoleónicas)", "Reino Unido de Portugal, Brasil y Algarve"], en:["Court in Brazil", "United Kingdom of Portugal, Brazil & Algarve"]} },
+            { type: 'king', n: "Manuel II", y: "1908-1910", d: "Braganza", c: "d-red", i: "shield", born: "Lisboa", died: "42", succ: "República", facts: {es:["El Patriota / El Desventurado", "Regicidio de su padre y hermano", "Último rey (exilio)"], en:["The Patriot / The Unfortunate", "Regicide of father/brother", "Last King (exile)"]} },
+
+            // REPÚBLICA
+            { type: 'gap', title: {es:"República Portuguesa", en:"Portuguese Republic"}, desc: {es:"1910-Presente (Revolución de los Claveles 1974)", en:"1910-Present (Carnation Revolution 1974)"}, y:"1910-Pte" }
+        ];
+
+        function getSVG(t) {
+            const c = {w:"#fff", b:"#2980b9", r:"#e74c3c"};
+            // Escudo simple: 5 escudetes azules en cruz sobre blanco
+            let p = '';
+            if(t==='shield') p=`<path d="M20 10 h60 v50 a30 30 0 0 1 -60 0 z" fill="${c.w}" stroke="${c.r}" stroke-width="2"/><rect x="45" y="20" width="10" height="12" fill="${c.b}"/><rect x="45" y="40" width="10" height="12" fill="${c.b}"/><rect x="30" y="30" width="10" height="12" fill="${c.b}"/><rect x="60" y="30" width="10" height="12" fill="${c.b}"/>`;
+            if(t==='eagle') p=`<path d="M20 10 h60 v50 a30 30 0 0 1 -60 0 z" fill="#f1c40f" stroke="#333"/><path d="M30 30 h40 v20 h-40 z" fill="#333"/>`; // Habsburgo
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+            const labels = { es: { born:"Nace", died:"Muere", succ:"Sucesor" }, en: { born:"Born", died:"Died", succ:"Successor" } }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                if (item.type === 'gap') {
+                    card.className = 'gap-card';
+                    card.innerHTML = `<div class="gap-title">${item.title[lang]}</div><div style="font-weight:bold; font-size:1.2em; color:#e74c3c;">${item.y}</div>${getSVG('gap')}<div class="gap-desc" style="margin-top:10px">${item.desc[lang]}</div>`;
+                } else {
+                    card.className = `monarch-card ${item.c}`;
+                    const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                    card.innerHTML = `<div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div><div class="card-header"><div class="monarch-name">${item.n}</div>${getSVG(item.i)}</div><div class="years">${item.y}</div><div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div><div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div><div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div><div class="events-box"><ul class="events-list">${facts}</ul></div>`;
+                }
+                container.appendChild(card);
+            });
+        }
+        renderTimeline();
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de Dinamarca - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn"><span>⬅</span> Menú</a>
+        <div class="app-title">DINAMARCA</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Danesa</h1>
+            <p id="pageSub">De Gorm el Viejo a Frederik X</p>
+        </div>
+        <div class="timeline-container" id="timeline"></div>
+    </div>
+
+    <script>
+        const DB = [
+            // VIKINGOS
+            { type: 'king', n: "Gorm el Viejo", y: "c. 936-958", d: "Jelling", c: "d-red", i: "ship", born: "Desconocido", died: "958", succ: "Harald", facts: {es:["Primer rey histórico reconocido", "Unificó Dinamarca", "Piedras de Jelling"], en:["First historical king", "Unified Denmark", "Jelling stones"]} },
+            { type: 'king', n: "Harald Bluetooth", y: "958-986", d: "Jelling", c: "d-red", i: "ship", born: "Jelling", died: "986", succ: "Sven", facts: {es:["Cristianizó a los daneses", "Inspiró el nombre del Bluetooth (tecnología)", "Unificó Dinamarca y Noruega"], en:["Christianized the Danes", "Inspiration for Bluetooth tech", "Unified Denmark and Norway"]} },
+            { type: 'king', n: "Cnut el Grande", y: "1018-1035", d: "Jelling", c: "d-red", i: "ship", born: "Dinamarca", died: "40", succ: "Harcnut", facts: {es:["Rey de Dinamarca, Inglaterra y Noruega", "Imperio del Mar del Norte", "Leyenda de las olas"], en:["King of Denmark, England, Norway", "North Sea Empire", "Legend of the waves"]} },
+
+            // ESTRIDSEN & KALMAR
+            { type: 'king', n: "Valdemar II", y: "1202-1241", d: "Estridsen", c: "d-blue", i: "lion", born: "Ribe", died: "70", succ: "Erik IV", facts: {es:["El Conquistador", "Leyenda de la bandera (Dannebrog) en Estonia", "Código de Jutlandia"], en:["The Victorious", "Dannebrog legend in Estonia", "Code of Jutland"]} },
+            { type: 'king', n: "Margarita I", y: "1387-1412", d: "Estridsen", c: "d-blue", i: "lion", born: "Søborg", died: "59", succ: "Erico", facts: {es:["Fundadora de la Unión de Kalmar", "Reina de Dinamarca, Suecia y Noruega", "Una de las mujeres más poderosas de la Edad Media"], en:["Founder of Kalmar Union", "Queen of Denmark, Sweden, Norway", "Medieval powerbroker"]} },
+
+            // OLDENBURGO
+            { type: 'king', n: "Cristian IV", y: "1588-1648", d: "Oldenburgo", c: "d-gold", i: "crown", born: "Frederiksborg", died: "70", succ: "Federico III", facts: {es:["Reinado de 59 años", "El rey constructor (Copenhague)", "Perdió la Guerra de los 30 Años"], en:["59-year reign", "The Builder King", "Lost 30 Years War"]} },
+            { type: 'king', n: "Federico III", y: "1648-1670", d: "Oldenburgo", c: "d-gold", i: "crown", born: "Haderslev", died: "60", succ: "Cristian V", facts: {es:["Instauró la Monarquía Absoluta", "Guerra contra Suecia (Pérdida de Escania)", "Defensa de Copenhague"], en:["Instituted Absolute Monarchy", "War vs Sweden", "Defense of Copenhagen"]} },
+            
+            // GLÜCKSBURG
+            { type: 'king', n: "Cristian IX", y: "1863-1906", d: "Glücksburg", c: "d-blue", i: "crown", born: "Schleswig", died: "87", succ: "Federico VIII", facts: {es:["El Suegro de Europa", "Sus hijos fueron reyes de UK, Grecia, Rusia y Dinamarca", "Guerra de los Ducados (1864)"], en:["Father-in-law of Europe", "Children ruled UK, Greece, Russia, Denmark", "Second Schleswig War"]} },
+            { type: 'king', n: "Cristian X", y: "1912-1947", d: "Glücksburg", c: "d-blue", i: "crown", born: "Charlottenlund", died: "76", succ: "Federico IX", facts: {es:["Rey durante la ocupación nazi", "Símbolo de resistencia nacional", "Montaba a caballo por Copenhague sin escolta"], en:["King during Nazi occupation", "Resistance symbol", "Rode horse daily without guards"]} },
+            { type: 'king', n: "Margarita II", y: "1972-2024", d: "Glücksburg", c: "d-blue", i: "crown", born: "Copenhague", died: "-", succ: "Frederik X", facts: {es:["Reinado de 52 años", "Artista y diseñadora", "Abdicó en 2024"], en:["52-year reign", "Artist/Designer", "Abdicated in 2024"]} },
+            { type: 'king', n: "Federico X", y: "2024-Pte", d: "Glücksburg", c: "d-blue", i: "crown", born: "Copenhague", died: "-", succ: "Christian", facts: {es:["Rey actual", "Corredor de maratón", "Formación militar de élite (Frogman)"], en:["Current King", "Marathon runner", "Elite Frogman training"]} }
+        ];
+
+        function getSVG(t) {
+            const c = {r:"#c60c30", w:"#fff", g:"#f1c40f"};
+            let p = '';
+            // Barco Vikingo
+            if(t==='ship') p=`<path d="M10 40 Q50 80 90 40 v-10 h-80 z" fill="#8d6e63"/><rect x="45" y="10" width="10" height="30" fill="${c.w}"/><path d="M20 10 h60 L50 30 z" fill="${c.r}"/>`;
+            // Corazones y Leones (Escudo danés simplificado)
+            if(t==='lion') p=`<path d="M20 10 h60 v50 a30 30 0 0 1 -60 0 z" fill="${c.g}" stroke="#333"/><path d="M40 30 h20 v20 h-20 z" fill="${c.r}"/>`;
+            // Corona simple
+            if(t==='crown') p=`<path d="M20 30 l15 30 h30 l15 -30 l-15 10 l-15 -20 l-15 20 z" fill="${c.g}" stroke="#333"/>`;
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+            const labels = { es: { born:"Nace", died:"Muere", succ:"Sucesor" }, en: { born:"Born", died:"Died", succ:"Successor" } }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `monarch-card ${item.c}`;
+                const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                card.innerHTML = `<div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div><div class="card-header"><div class="monarch-name">${item.n}</div>${getSVG(item.i)}</div><div class="years">${item.y}</div><div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div><div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div><div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div><div class="events-box"><ul class="events-list">${facts}</ul></div>`;
+                container.appendChild(card);
+            });
+        }
+        renderTimeline();
+    </script>
+</body>
+</html>

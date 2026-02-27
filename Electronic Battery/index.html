@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Water Cursor Particles + Drum Machine</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Water Cursor Particles + Drum Machine</h1>
+      <p>Move your mouse to create soft water-like motion. Left-click to add drum steps. Right-click for settings.</p>
+    </main>
+
+    <nav id="context-menu" class="context-menu" role="menu" aria-hidden="true">
+      <div class="menu-section">
+        <button id="toggle-palette" type="button" role="menuitem">Switch to cold palette</button>
+      </div>
+
+      <div class="menu-section" aria-label="Drum Settings">
+        <p class="menu-title">Drum Machine</p>
+        <button id="toggle-transport" type="button" role="menuitem">Start Playback</button>
+        <button id="clear-sequence" type="button" role="menuitem">Clear All Steps</button>
+        
+        <label class="menu-control" for="bpm-control">
+          <span>BPM</span>
+          <output id="bpm-value" for="bpm-control"></output>
+        </label>
+        <input id="bpm-control" type="range" min="60" max="180" step="1" value="120" />
+        
+        <label class="menu-control" for="grid-control">
+          <span>Grid Steps</span>
+          <output id="grid-value" for="grid-control"></output>
+        </label>
+        <input id="grid-control" type="range" min="8" max="32" step="4" value="16" />
+      </div>
+
+      <div class="menu-section" aria-label="Presets">
+        <p class="menu-title">Presets</p>
+        <div class="menu-button-grid">
+          <button id="preset-calm" type="button" role="menuitem">Calm</button>
+          <button id="preset-balanced" type="button" role="menuitem">Balanced</button>
+          <button id="preset-energetic" type="button" role="menuitem">Energetic</button>
+        </div>
+        <button id="reset-all" type="button" role="menuitem">Reset to initial state</button>
+      </div>
+
+      <div class="menu-section" aria-label="Particle settings">
+        <p class="menu-title">Particle settings</p>
+
+        <label class="menu-control" for="swirl-control">
+          <span>Swirl strength</span>
+          <output id="swirl-value" for="swirl-control"></output>
+        </label>
+        <input id="swirl-control" type="range" min="0.02" max="0.15" step="0.005" />
+
+        <label class="menu-control" for="pull-control">
+          <span>Pull strength</span>
+          <output id="pull-value" for="pull-control"></output>
+        </label>
+        <input id="pull-control" type="range" min="0.005" max="0.04" step="0.001" />
+
+        <label class="menu-control" for="damping-control">
+          <span>Damping</span>
+          <output id="damping-value" for="damping-control"></output>
+        </label>
+        <input id="damping-control" type="range" min="0.88" max="0.995" step="0.001" />
+
+        <label class="menu-control" for="wobble-control">
+          <span>Wobble</span>
+          <output id="wobble-value" for="wobble-control"></output>
+        </label>
+        <input id="wobble-control" type="range" min="0" max="1" step="0.01" />
+
+        <label class="menu-control" for="spawn-control">
+          <span>Spawn rate</span>
+          <output id="spawn-value" for="spawn-control"></output>
+        </label>
+        <input id="spawn-control" type="range" min="0.5" max="2.5" step="0.1" />
+
+        <label class="menu-control" for="size-control">
+          <span>Particle size</span>
+          <output id="size-value" for="size-control"></output>
+        </label>
+        <input id="size-control" type="range" min="0.6" max="1.8" step="0.05" />
+
+        <label class="menu-control" for="count-control">
+          <span>Particle count</span>
+          <output id="count-value" for="count-control"></output>
+        </label>
+        <input id="count-control" type="range" min="20" max="240" step="1" />
+      </div>
+    </nav>
+
+    <script src="script.js"></script>
+  </body>
+</html>

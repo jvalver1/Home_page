@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tetris with Arrow Keys</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #111;
+      font-family: 'Arial', sans-serif;
+      color: white;
+    }
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #222;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+    canvas {
+      background-color: #000;
+      border: 2px solid #00ffff;
+      border-radius: 5px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2em;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    .controls {
+      margin-top: 15px;
+      font-size: 1.2em;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <h1>TETRIS</h1>
+    <canvas id="tetris" width="240" height="400"></canvas>
+    <div class="controls">
+      Use <strong>← → ↑ ↓</strong> to move, <strong>Space</strong> to rotate
+    </div>
+  </div>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('tetris');
+    const ctx = canvas.getContext('2d');
+    const BLOCK_SIZE = 20;
+    const BOARD_WIDTH = 12;
+    const BOARD_HEIGHT = 20;
+
+    // Scale canvas to make it look bigger
+    ctx.scale(1, 1);
+
+    // Game state
+    let board = Array(BOARD_HEIGHT).fill(null).map(() => Array(BOARD_WIDTH).fill(0));
+    let score = 0;
+    let level = 1;
+    let lines = 0;
+    let gameRunning = true;
+    let lastTime = 0;
+    let dropTime = 0;
+
+    // Define Tetromino shapes
+    const TETROMINOS = {
+      I: [
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+      ],
+      J: [
+        [1, 0, 0],
+        [1, 1, 1],
+        [0, 0, 0]
+      ],
+      L: [
+        [0, 0, 1],
+        [1, 1, 1],
+        [0, 0, 0]
+      ],
+      O: [
+        [1, 1],
+        [1, 1]
+      ],
+      S: [
+        [0, 1, 1],
+        [1, 1, 0],
+        [0, 0, 0]
+      ],
+      Z: [
+        [1, 1, 0],
+        [0, 1, 1],
+        [0, 0, 0]
+      ],
+      T: [
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 0, 0]
+      ]
+    };
+
+    // Color palette
+    const COLORS = {
+      I: '#00FFFF',
+      J: '#0000FF',
+      L: '#FFA500',
+      O: '#FFFF00',
+      S: '#00FF00',
+      Z: '#FF0000',
+      T: '#9932CC'
+    };
+
+    // Current piece
+    let currentPiece = null;
+    let currentX = 0;
+    let currentY = 0;
+
+    // Generate a random piece
+    function randomPiece() {
+      const pieces = Object.keys(TETROMINOS);
+      const piece = pieces[Math.floor(Math.random() * pieces.length)];
+      return {
+        shape: TETROMINOS[piece],
+        color: COLORS[piece],
+        type: piece
+      };
+    }
+
+    // Initialize the game
+    function init() {
+      // Reset board
+      board = Array(BOARD_HEIGHT).fill(null).map(() => Array(BOARD_WIDTH).fill(0));
+      score = 0;
+      level = 1;
+      lines = 0;
+      gameRunning = true;
+      dropTime = 0;
+      currentPiece = randomPiece();
+      currentX = Math.floor(BOARD_WIDTH / 2) - Math.floor(currentPiece.shape[0].length / 2);
+      currentY = 0;
+      render();
+    }
+
+    // Rotate piece 90 degrees clockwise
+    function rotatePiece(piece) {
+      const rotated = [];
+      for (let i = 0; i < piece.shape[0].length; i++) {
+        const row = [];
+        for (let j = piece.shape.length - 1; j >= 0; j--) {
+          row.push(piece.shape[j][i]);
+        }
+        rotated.push(row);
+      }
+      return rotated;
+    }
+
+    // Check if the piece can move to new position
+    function canMove(piece, newX, newY, newShape = piece.shape) {
+      for (let y = 0; y < newShape.length; y++) {
+        for (let x = 0; x < newShape[y].length; x++) {
+          if (newShape[y][x] === 0) continue;
+          const boardX = newX + x;
+          const boardY = newY + y;
+          if (boardX < 0 || boardX >= BOARD_WIDTH || boardY >= BOARD_HEIGHT) return false;
+          if (boardY >= 0 && board[boardY][boardX] !== 0) return false;
+        }
+      }
+      return true;
+    }
+
+    // Place the piece on the board
+    function placePiece() {
+      for (let y = 0; y < currentPiece.shape.length; y++) {
+        for (let x = 0; x < currentPiece.shape[y].length; x++) {
+          if (currentPiece.shape[y][x] === 0) continue;
+          const boardX = currentX + x;
+          const boardY = currentY + y;
+          if (boardY >= 0) {
+            board[boardY][boardX] = currentPiece.color;
+          }
+        }
+      }
+      checkLines();
+      currentPiece = randomPiece();
+      currentX = Math.floor(BOARD_WIDTH / 2) - Math.floor(currentPiece.shape[0].length / 2);
+      currentY = 0;
+      if (!canMove(currentPiece, currentX, currentY)) {
+        gameRunning = false;
+      }
+    }
+
+    // Check for completed lines
+    function checkLines() {
+      let linesCleared = 0;
+      for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
+        if (board[y].every(cell => cell !== 0)) {
+          board.splice(y, 1);
+          board.unshift(Array(BOARD_WIDTH).fill(0));
+          linesCleared++;
+        }
+      }
+      if (linesCleared > 0) {
+        lines += linesCleared;
+        score += linesCleared * 100 * level;
+        level = Math.floor(lines / 10) + 1;
+      }
+    }
+
+    // Draw a single block
+    function drawBlock(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+    }
+
+    // Draw the board
+    function drawBoard() {
+      for (let y = 0; y < BOARD_HEIGHT; y++) {
+        for (let x = 0; x < BOARD_WIDTH; x++) {
+          if (board[y][x] !== 0) {
+            drawBlock(x, y, board[y][x]);
+          }
+        }
+      }
+    }
+
+    // Draw the current piece
+    function drawPiece() {
+      if (!currentPiece) return;
+      for (let y = 0; y < currentPiece.shape.length; y++) {
+        for (let x = 0; x < currentPiece.shape[y].length; x++) {
+          if (currentPiece.shape[y][x] === 0) continue;
+          drawBlock(currentX + x, currentY + y, currentPiece.color);
+        }
+      }
+    }
+
+    // Render the game
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBoard();
+      drawPiece();
+
+      // Draw score and level
+      ctx.fillStyle = '#fff';
+      ctx.font = '16px Arial';
+      ctx.fillText(`Score: ${score}`, 10, 20);
+      ctx.fillText(`Level: ${level}`, 10, 40);
+      ctx.fillText(`Lines: ${lines}`, 10, 60);
+
+      // Game over
+      if (!gameRunning) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+        ctx.font = '18px Arial';
+        ctx.fillText('Press Space to Restart', canvas.width / 2, canvas.height / 2 + 30);
+      }
+    }
+
+    // Main game loop
+    function update(time = 0) {
+      if (!gameRunning) return;
+      const deltaTime = time - lastTime;
+      lastTime = time;
+
+      // Speed increases with level
+      const dropSpeed = Math.max(50, 1000 - (level - 1) * 100);
+      dropTime += deltaTime;
+      if (dropTime > dropSpeed) {
+        dropTime = 0;
+        if (!canMove(currentPiece, currentX, currentY + 1)) {
+          placePiece();
+        } else {
+          currentY++;
+        }
+      }
+
+      render();
+      requestAnimationFrame(update);
+    }
+
+    // Handle keyboard input
+    document.addEventListener('keydown', (e) => {
+      if (!gameRunning && e.code === 'Space') {
+        init();
+        return;
+      }
+
+      if (gameRunning) {
+        switch (e.code) {
+          case 'ArrowLeft':
+            if (canMove(currentPiece, currentX - 1, currentY)) {
+              currentX--;
+            }
+            break;
+          case 'ArrowRight':
+            if (canMove(currentPiece, currentX + 1, currentY)) {
+              currentX++;
+            }
+            break;
+          case 'ArrowDown':
+            if (canMove(currentPiece, currentX, currentY + 1)) {
+              currentY++;
+            }
+            break;
+          case 'ArrowUp':
+            const rotated = rotatePiece(currentPiece);
+            if (canMove(currentPiece, currentX, currentY, rotated)) {
+              currentPiece.shape = rotated;
+            }
+            break;
+          case 'Space':
+            // Hard drop
+            while (canMove(currentPiece, currentX, currentY + 1)) {
+              currentY++;
+            }
+            placePiece();
+            break;
+        }
+      }
+    });
+
+    // Start the game
+    init();
+    update();
+  </script>
+</body>
+</html>

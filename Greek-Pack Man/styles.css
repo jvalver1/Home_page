@@ -1,0 +1,426 @@
+:root {
+  /* Greek Color Palette */
+  --olympus-gold: #d4af37;
+  --aegean-blue: #1e3a8a;
+  --deep-blue: #0f172a;
+  --marble-white: #f8fafc;
+  --stone-gray: #64748b;
+  --terracotta: #c2410c;
+  --bronze: #92400e;
+
+  /* Monster Colors */
+  --medusa-red: #dc2626;
+  --minotaur-pink: #ec4899;
+  --harpy-cyan: #06b6d4;
+  --cyclops-orange: #f97316;
+
+  /* Game Colors */
+  --power-glow: #fcd34d;
+  --wall-color: #78716c;
+  --pellet-gold: #fbbf24;
+
+  /* Fonts */
+  --font-title: "Cinzel", serif;
+  --font-body: "Philosopher", sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  color: var(--marble-white);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.game-container {
+  max-width: 900px;
+  width: 100%;
+  position: relative;
+}
+
+/* Greek Border Decorations */
+.greek-border-top,
+.greek-border-bottom {
+  height: 20px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--olympus-gold) 0px,
+    var(--olympus-gold) 15px,
+    transparent 15px,
+    transparent 20px,
+    var(--olympus-gold) 20px,
+    var(--olympus-gold) 35px,
+    transparent 35px,
+    transparent 40px
+  );
+  border: 2px solid var(--olympus-gold);
+  margin: 10px 0;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+/* Header */
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.game-title {
+  font-family: var(--font-title);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--olympus-gold);
+  text-shadow:
+    0 0 10px rgba(212, 175, 55, 0.5),
+    0 0 20px rgba(212, 175, 55, 0.3),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 4px;
+  margin-bottom: 5px;
+}
+
+.game-subtitle {
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  color: var(--marble-white);
+  opacity: 0.9;
+  letter-spacing: 2px;
+}
+
+/* Score Panel */
+.score-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 58, 138, 0.4),
+    rgba(15, 23, 42, 0.6)
+  );
+  border: 2px solid var(--olympus-gold);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.score-item {
+  text-align: center;
+}
+
+.score-item .label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--olympus-gold);
+  font-weight: 600;
+  margin-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.score-item .value {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--marble-white);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.lives-container {
+  text-align: center;
+}
+
+.lives-display {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.life-icon {
+  width: 25px;
+  height: 25px;
+  background: var(--olympus-gold);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+  position: relative;
+}
+
+.life-icon::before {
+  content: "⚡";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+}
+
+/* Canvas Wrapper */
+.canvas-wrapper {
+  position: relative;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 3px solid var(--olympus-gold);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow:
+    0 0 30px rgba(212, 175, 55, 0.4),
+    inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #0a0e1a;
+}
+
+/* Overlay Screens */
+.overlay-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  backdrop-filter: blur(5px);
+}
+
+.overlay-screen.hidden {
+  display: none;
+}
+
+.screen-content {
+  text-align: center;
+  padding: 40px;
+  max-width: 600px;
+}
+
+.screen-content h2 {
+  font-family: var(--font-title);
+  font-size: 2.5rem;
+  color: var(--olympus-gold);
+  margin-bottom: 20px;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+}
+
+.screen-content p {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.instructions {
+  color: var(--marble-white);
+  opacity: 0.9;
+}
+
+/* Controls Info */
+.controls-info {
+  margin: 30px 0;
+}
+
+.controls-info h3 {
+  font-family: var(--font-title);
+  color: var(--olympus-gold);
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.key-grid {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.key {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--aegean-blue), var(--deep-blue));
+  border: 2px solid var(--olympus-gold);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Monsters Info */
+.monsters-info {
+  margin: 30px 0;
+}
+
+.monsters-info h3 {
+  font-family: var(--font-title);
+  color: var(--terracotta);
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.monster-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.monster-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(30, 58, 138, 0.3);
+  border-radius: 5px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.monster-icon {
+  font-size: 1.5rem;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.monster-icon.medusa {
+  color: var(--medusa-red);
+}
+.monster-icon.minotaur {
+  color: var(--minotaur-pink);
+}
+.monster-icon.harpy {
+  color: var(--harpy-cyan);
+}
+.monster-icon.cyclops {
+  color: var(--cyclops-orange);
+}
+
+.power-tip {
+  margin-top: 20px;
+  padding: 15px;
+  background: linear-gradient(
+    135deg,
+    rgba(252, 211, 77, 0.2),
+    rgba(212, 175, 55, 0.2)
+  );
+  border: 1px solid var(--power-glow);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* Buttons */
+.game-button {
+  font-family: var(--font-title);
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding: 15px 40px;
+  margin-top: 20px;
+  background: linear-gradient(135deg, var(--olympus-gold), #b8860b);
+  color: var(--deep-blue);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow:
+    0 4px 15px rgba(212, 175, 55, 0.5),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.game-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(212, 175, 55, 0.7),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.game-button:active {
+  transform: translateY(0);
+  box-shadow:
+    0 2px 10px rgba(212, 175, 55, 0.5),
+    inset 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Final Score */
+.final-score {
+  font-size: 1.5rem;
+  color: var(--olympus-gold);
+  font-weight: 700;
+  margin: 20px 0;
+}
+
+.message {
+  font-size: 1.2rem;
+  color: var(--marble-white);
+  margin: 15px 0;
+}
+
+/* Footer */
+.game-footer {
+  text-align: center;
+  margin-top: 20px;
+  padding: 15px;
+  color: var(--stone-gray);
+  font-size: 0.9rem;
+}
+
+kbd {
+  display: inline-block;
+  padding: 3px 8px;
+  background: rgba(30, 58, 138, 0.5);
+  border: 1px solid var(--olympus-gold);
+  border-radius: 4px;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--olympus-gold);
+  margin: 0 3px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 1.8rem;
+  }
+
+  .score-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .monster-list {
+    grid-template-columns: 1fr;
+  }
+
+  .screen-content {
+    padding: 20px;
+  }
+
+  .screen-content h2 {
+    font-size: 1.8rem;
+  }
+}
+
+/* Animations */
+@keyframes glow {
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+  }
+}
+
+.game-title {
+  animation: glow 2s ease-in-out infinite;
+}

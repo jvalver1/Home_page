@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amstrad CPC 3D Sine Wave</title>
+    <style>
+        body {
+            background-color: #333;
+            color: #eee;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: #444;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            max-width: 660px;
+        }
+        canvas {
+            background-color: #000; /* Amstrad PAPER 0 */
+            border: 10px solid #000; /* Amstrad BORDER 0 */
+            image-rendering: pixelated; /* Retro look */
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            margin-top: 20px;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        label {
+            font-size: 0.9em;
+        }
+        input {
+            background: #222;
+            color: #0f0;
+            border: 1px solid #555;
+            padding: 5px;
+            font-family: inherit;
+        }
+        button {
+            grid-column: span 2;
+            background-color: #0044cc;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        button:hover {
+            background-color: #0066ff;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 0;
+            color: #ff0; /* Retro Yellow */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Onda Senoidal Tridimensional</h1>
+    
+    <div class="controls">
+        <label>Desplazamiento (0-360) [s]:</label>
+        <input type="number" id="inp_s" value="45">
+
+        <label>Ancho de los senos [si]:</label>
+        <input type="number" id="inp_si" value="50">
+
+        <label>Numero de senos [d]:</label>
+        <input type="number" id="inp_d" value="3">
+
+        <label>Intervalo Horizontal [st]:</label>
+        <input type="number" id="inp_st" value="0.05" step="0.01">
+
+        <label>Intervalo Profundidad [bs]:</label>
+        <input type="number" id="inp_bs" value="0.5" step="0.1">
+        
+        <button onclick="runBasic()">RUN</button>
+    </div>
+
+    <canvas id="cpcScreen" width="640" height="400"></canvas>
+    <div style="text-align:center; font-size:0.8em; color:#aaa; margin-top:5px;">
+        Output simulated (Ink 1, Paper 0)
+    </div>
+</div>
+
+<script>
+    function runBasic() {
+        const canvas = document.getElementById('cpcScreen');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        // CLS - Clear Screen (Amstrad Paper 0 is Black)
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Setup drawing style (Amstrad Pen 1 is usually bright color, using Cyan/White mix for retro feel)
+        ctx.fillStyle = '#ffffff'; 
+
+        // Get Inputs
+        // Note: In BASIC line 50, s is DEFINT, but usually used as float in these demos. 
+        // We will parse as float to be safe.
+        let s_deg = parseFloat(document.getElementById('inp_s').value);
+        let si = parseFloat(document.getElementById('inp_si').value);
+        let d_in = parseFloat(document.getElementById('inp_d').value);
+        let st = parseFloat(document.getElementById('inp_st').value);
+        let bs = parseFloat(document.getElementById('inp_bs').value);
+
+        // Convert Degrees to Radians for JS Math.sin (BASIC assumes Radians usually, 
+        // but if input is 45 for 0-360, user likely intends degrees)
+        // However, the formula calculates 'd' using PI.
+        // If we strictly follow the code: s is added to radians. 
+        // If s=45 and d is radians, it's messy. 
+        // We will assume the code intended 's' to be converted to radians for the math to work visually.
+        let s = s_deg * (Math.PI / 180.0); 
+
+        // Line 90 Calculation: d=((2*PI/15)/2)*d
+        // Note: 2*PI/15 is the period. 
+        let d = ((2 * Math.PI / 15) / 2) * d_in;
+
+        // Line 60: DIM t(640)
+        // Horizon array to hide lines behind others
+        let t = new Array(641).fill(-1000); // Initialize with low value
+
+        // Line 100 FOR n=0 TO 15 STEP bs
+        for(let n = 0; n <= 15; n += bs) {
+            let nd = n * d;
+            let n1 = n * 10;
+            let n2 = n * 20;
+
+            // Line 110 FOR m=0 TO 15 STEP st
+            for(let m = 0; m <= 15; m += st) {
+                
+                // y=SIN(m*d+s)*SIN(nd+s)*si+m*10+n1
+                // JS Math.sin takes radians.
+                let val1 = Math.sin(m * d + s);
+                let val2 = Math.sin(nd + s);
+                let y = val1 * val2 * si + m * 10 + n1;
+
+                // Line 120
+                // q=320+n2-m*20
+                // x=320-n2+m*20
+                let q = 320 + n2 - (m * 20);
+                let x = 320 - n2 + (m * 20);
+                
+                // Round coordinates for array indexing and plotting
+                let plotX = Math.round(x);
+                let plotQ = Math.round(q);
+                
+                // Amstrad Y is 0 at bottom (usually), HTML Canvas is 0 at top.
+                // We flip Y. Assuming 400 height roughly centers it based on the math.
+                // The code generates positive Y.
+                let plotY = 400 - y; 
+
+                // Horizon Logic: IF y>t(x) THEN PLOT...
+                // Note: We check t[plotX]. 
+                if (plotX >= 0 && plotX <= 640) {
+                    if (y > t[plotX]) {
+                        ctx.fillRect(plotX, plotY, 2, 2); // Plot pixel
+                        t[plotX] = y;
+                    }
+                }
+
+                // The code plots 'q' using the same 'y' value and horizon check on 'x'?
+                // Line 120 says: IF y>t(x) THEN PLOT x,y: PLOT q,y : t(x)=y
+                // It updates the horizon for X, but plots BOTH X and Q. 
+                // This creates a mirrored effect.
+                if (plotX >= 0 && plotX <= 640 && y >= t[plotX]) { 
+                    // We re-check condition because we are inside the loop, 
+                    // but we need to ensure we plot Q if X was visible.
+                    if (plotQ >= 0 && plotQ <= 640) {
+                         ctx.fillRect(plotQ, plotY, 2, 2);
+                    }
+                }
+            }
+        }
+    }
+
+    // Run once on load
+    window.onload = runBasic;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de Francia - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn">
+            <span>⬅</span> Menú Principal
+        </a>
+        <div class="app-title">FRANCIA</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Francesa</h1>
+            <p id="pageSub">De Carlomagno a Napoleón III</p>
+        </div>
+
+        <div class="timeline-container" id="timeline">
+            </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DETALLADA FRANCIA ---
+        const DB = [
+            // CAROLINGIOS
+            { type: 'gap', title: {es:"Imperio Carolingio", en:"Carolingian Empire"}, desc: {es:"Fundación de la Europa Medieval", en:"Foundation of Medieval Europe"}, y:"768-987" },
+            { type: 'king', n: "Carlomagno", y: "768-814", d: "Carolingio", c: "d-gold", i: "eagle", born: "Aquisgrán", died: "72", succ: "Luis I", facts: {es:["Padre de Europa", "Emperador de los Romanos (800)", "Renacimiento Carolingio"], en:["Father of Europe", "Emperor of the Romans (800)", "Carolingian Renaissance"]} },
+            { type: 'king', n: "Luis I (El Piadoso)", y: "814-840", d: "Carolingio", c: "d-gold", i: "eagle", born: "Poitiers", died: "62", succ: "Carlos II", facts: {es:["Hijo legítimo único de Carlomagno", "División del Imperio (Tratado de Verdún)"], en:["Charlemagne's sole heir", "Division of Empire (Treaty of Verdun)"]} },
+            { type: 'king', n: "Carlos II (El Calvo)", y: "843-877", d: "Carolingio", c: "d-gold", i: "eagle", born: "Frankfurt", died: "54", succ: "Luis II", facts: {es:["Primer Rey de Francia Occidental", "Nieto de Carlomagno"], en:["First King of West Francia", "Grandson of Charlemagne"]} },
+
+            // CAPETOS (Directos)
+            { type: 'gap', title: {es:"Dinastía de los Capetos", en:"House of Capet"}, desc: {es:"Inicio de la Francia moderna", en:"Beginning of modern France"}, y:"987-1328" },
+            { type: 'king', n: "Hugo Capeto", y: "987-996", d: "Capeto", c: "d-blue", i: "fleur", born: "París", died: "55", succ: "Roberto II", facts: {es:["Fundador de la dinastía", "Elegido por los nobles", "Poder limitado a Île-de-France"], en:["Founder of the dynasty", "Elected by nobles", "Power limited to Île-de-France"]} },
+            { type: 'king', n: "Felipe II Augusto", y: "1180-1223", d: "Capeto", c: "d-blue", i: "fleur", born: "París", died: "57", succ: "Luis VIII", facts: {es:["Gran expansión territorial", "Construcción del Louvre", "Rival de Ricardo Corazón de León"], en:["Great territorial expansion", "Built the Louvre", "Rival of Richard Lionheart"]} },
+            { type: 'king', n: "Luis IX (San Luis)", y: "1226-1270", d: "Capeto", c: "d-blue", i: "fleur", born: "Poissy", died: "56", succ: "Felipe III", facts: {es:["Único rey francés canonizado", "Construyó la Sainte-Chapelle", "Murió en la Octava Cruzada"], en:["Only canonized French king", "Built Sainte-Chapelle", "Died in Eighth Crusade"]} },
+            { type: 'king', n: "Felipe IV (El Hermoso)", y: "1285-1314", d: "Capeto", c: "d-blue", i: "fleur", born: "Fontainebleau", died: "46", succ: "Luis X", facts: {es:["Disolución de los Templarios", "Traslado del Papa a Aviñón", "Padre de reyes"], en:["Dissolution of Templars", "Moved Pope to Avignon", "Father of kings"]} },
+
+            // VALOIS (Guerra 100 Años)
+            { type: 'gap', title: {es:"Guerra de los 100 Años", en:"Hundred Years' War"}, desc: {es:"Conflicto con Inglaterra", en:"Conflict with England"}, y:"1337-1453" },
+            { type: 'king', n: "Felipe VI", y: "1328-1350", d: "Valois", c: "d-blue", i: "fleur", born: "Fontainebleau", died: "57", succ: "Juan II", facts: {es:["Primer rey Valois", "Inicio de la guerra con Inglaterra", "Peste Negra"], en:["First Valois king", "Start of war with England", "Black Death"]} },
+            { type: 'king', n: "Carlos VII", y: "1422-1461", d: "Valois", c: "d-blue", i: "fleur", born: "París", died: "58", succ: "Luis XI", facts: {es:["El Victorioso", "Ayudado por Juana de Arco", "Fin de la Guerra de los 100 Años"], en:["The Victorious", "Aided by Joan of Arc", "End of Hundred Years' War"]} },
+            
+            // VALOIS (Renacimiento)
+            { type: 'king', n: "Francisco I", y: "1515-1547", d: "Valois", c: "d-blue", i: "fleur", born: "Cognac", died: "52", succ: "Enrique II", facts: {es:["Rey del Renacimiento", "Mecenas de Leonardo da Vinci", "Rival de Carlos V"], en:["Renaissance King", "Patron of Da Vinci", "Rival of Charles V"]} },
+            { type: 'king', n: "Enrique II", y: "1547-1559", d: "Valois", c: "d-blue", i: "fleur", born: "St Germain", died: "40", succ: "Francisco II", facts: {es:["Murió en un torneo de justas", "Esposo de Catalina de Médici", "Persecución de protestantes"], en:["Died in a jousting tournament", "Husband of Catherine de Medici", "Persecution of Protestants"]} },
+            { type: 'king', n: "Enrique III", y: "1574-1589", d: "Valois", c: "d-blue", i: "fleur", born: "Fontainebleau", died: "37", succ: "Enrique IV", facts: {es:["Último Valois", "Guerras de Religión", "Asesinado por un monje"], en:["Last Valois", "Wars of Religion", "Assassinated by a monk"]} },
+
+            // BORBONES
+            { type: 'king', n: "Enrique IV", y: "1589-1610", d: "Borbón", c: "d-blue", i: "fleur", born: "Pau", died: "56", succ: "Luis XIII", facts: {es:["'París bien vale una misa'", "Edicto de Nantes (tolerancia)", "Primer Borbón"], en:["'Paris is worth a mass'", "Edict of Nantes", "First Bourbon"]} },
+            { type: 'king', n: "Luis XIII", y: "1610-1643", d: "Borbón", c: "d-blue", i: "fleur", born: "Fontainebleau", died: "41", succ: "Luis XIV", facts: {es:["Gobierno del Cardenal Richelieu", "Guerra de los 30 Años", "Fundación Academia Francesa"], en:["Rule of Cardinal Richelieu", "30 Years War", "Founded French Academy"]} },
+            { type: 'king', n: "Luis XIV (El Rey Sol)", y: "1643-1715", d: "Borbón", c: "d-blue", i: "fleur", born: "St Germain", died: "76", succ: "Luis XV", facts: {es:["Monarca absoluto ('El Estado soy yo')", "Construcción de Versalles", "Reinado de 72 años"], en:["Absolute monarch", "Built Versailles", "Reigned 72 years"]} },
+            { type: 'king', n: "Luis XV", y: "1715-1774", d: "Borbón", c: "d-blue", i: "fleur", born: "Versalles", died: "64", succ: "Luis XVI", facts: {es:["El Bienamado", "Pérdida de colonias (Canadá/India)", "Influencia de Madame de Pompadour"], en:["The Beloved", "Loss of colonies", "Madame de Pompadour influence"]} },
+            { type: 'king', n: "Luis XVI", y: "1774-1792", d: "Borbón", c: "d-blue", i: "fleur", born: "Versalles", died: "38", succ: "República", facts: {es:["Revolución Francesa", "Apoyo a independencia de EEUU", "Guillotinado"], en:["French Revolution", "Supported US Independence", "Guillotined"]} },
+
+            // REVOLUCIÓN
+            { type: 'gap', title: {es:"I República", en:"First Republic"}, desc: {es:"Convención / El Terror / Directorio", en:"Convention / The Terror / Directory"}, y:"1792-1804" },
+
+            // IMPERIO
+            { type: 'king', n: "Napoleón I", y: "1804-1815", d: "Bonaparte", c: "d-red", i: "eagle", born: "Córcega", died: "51", succ: "Luis XVIII", facts: {es:["Emperador de los Franceses", "Conquista de Europa", "Código Napoleónico", "Exilio en Santa Elena"], en:["Emperor of the French", "Conquered Europe", "Napoleonic Code", "Exile in St Helena"]} },
+
+            // RESTAURACIÓN
+            { type: 'king', n: "Luis XVIII", y: "1814-1824", d: "Borbón", c: "d-blue", i: "fleur", born: "Versalles", died: "68", succ: "Carlos X", facts: {es:["Restauración Borbónica", "Carta otorgada de 1814", "Murió en el trono"], en:["Bourbon Restoration", "Charter of 1814", "Died on throne"]} },
+            { type: 'king', n: "Carlos X", y: "1824-1830", d: "Borbón", c: "d-blue", i: "fleur", born: "Versalles", died: "79", succ: "Luis Felipe", facts: {es:["Ultrarrealista", "Derrocado en la Revolución de 1830", "Último Borbón"], en:["Ultra-royalist", "Deposed in 1830 Revolution", "Last Bourbon"]} },
+
+            // MONARQUÍA DE JULIO
+            { type: 'king', n: "Luis Felipe I", y: "1830-1848", d: "Orleans", c: "d-gold", i: "fleur", born: "París", died: "76", succ: "República", facts: {es:["El Rey Ciudadano", "Rey 'de los franceses'", "Derrocado en 1848"], en:["The Citizen King", "King 'of the French'", "Deposed in 1848"]} },
+
+            // II REPÚBLICA & II IMPERIO
+            { type: 'gap', title: {es:"II República", en:"Second Republic"}, desc: {es:"1848-1852 (Presidencia de L. Napoleón)", en:"1848-1852 (Presidency of L. Napoleon)"}, y:"1848-1852" },
+            { type: 'king', n: "Napoleón III", y: "1852-1870", d: "Bonaparte", c: "d-red", i: "eagle", born: "París", died: "64", succ: "República", facts: {es:["Último monarca de Francia", "Reconstrucción de París (Haussmann)", "Capturado en Sedán (Prusia)"], en:["Last monarch of France", "Rebuilding of Paris", "Captured at Sedan"]} },
+
+            // FINAL
+            { type: 'gap', title: {es:"República Francesa", en:"French Republic"}, desc: {es:"III, IV y V República (Actualidad)", en:"III, IV & V Republic (Present day)"}, y:"1870-Pte" },
+        ];
+
+        // --- FUNCIONES DE RENDERIZADO ---
+        function getSVG(t) {
+            const c = {r:"#e74c3c", y:"#f1c40f", b:"#2980b9", w:"#ffffff", k:"#2c3e50", g:"#27ae60"};
+            const shield = 'd="M20 10 h60 v50 a30 30 0 0 1 -60 0 z"';
+            let p = '';
+            
+            // Iconos Francia
+            if(t==='fleur') p=`<path ${shield} fill="${c.b}" stroke="${c.k}"/><circle cx="50" cy="30" r="5" fill="${c.y}"/><circle cx="40" cy="50" r="5" fill="${c.y}"/><circle cx="60" cy="50" r="5" fill="${c.y}"/>`; // Flor de Lis
+            if(t==='eagle') p=`<path ${shield} fill="${c.r}" stroke="${c.k}"/><path d="M30 35 h40 v20 h-40 z" fill="${c.y}"/>`; // Águila Imperial
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+
+            const labels = {
+                es: { born:"Nace", died:"Muere", succ:"Sucesor" },
+                en: { born:"Born", died:"Died", succ:"Successor" }
+            }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                
+                if (item.type === 'gap') {
+                    card.className = 'gap-card';
+                    card.innerHTML = `
+                        <div class="gap-title">${item.title[lang]}</div>
+                        <div style="font-weight:bold; font-size:1.2em; color:#e74c3c;">${item.y}</div>
+                        ${getSVG('gap')}
+                        <div class="gap-desc" style="margin-top:10px">${item.desc[lang]}</div>
+                    `;
+                } else {
+                    card.className = `monarch-card ${item.c}`;
+                    const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                    card.innerHTML = `
+                        <div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div>
+                        <div class="card-header">
+                            <div class="monarch-name">${item.n}</div>
+                            ${getSVG(item.i)}
+                        </div>
+                        <div class="years">${item.y}</div>
+                        
+                        <div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div>
+                        <div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div>
+                        <div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div>
+
+                        <div class="events-box">
+                            <ul class="events-list">${facts}</ul>
+                        </div>
+                    `;
+                }
+                container.appendChild(card);
+            });
+        }
+
+        renderTimeline();
+    </script>
+</body>
+</html>

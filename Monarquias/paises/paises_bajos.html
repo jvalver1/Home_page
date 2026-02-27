@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de Países Bajos - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn"><span>⬅</span> Menú</a>
+        <div class="app-title">PAÍSES BAJOS</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Casa de Orange-Nassau</h1>
+            <p id="pageSub">De Estatúderes a Reyes</p>
+        </div>
+        <div class="timeline-container" id="timeline"></div>
+    </div>
+
+    <script>
+        const DB = [
+            // REPÚBLICA
+            { type: 'gap', title: {es:"República Neerlandesa", en:"Dutch Republic"}, desc: {es:"1581-1795 (Siglo de Oro / Estatúderes)", en:"1581-1795 (Golden Age / Stadtholders)"}, y:"1581-1795" },
+            { type: 'king', n: "Guillermo I (El Taciturno)", y: "1559-1584", d: "Orange", c: "d-gold", i: "lion", born: "Dillenburg", died: "51", succ: "Mauricio", facts: {es:["Padre de la Patria", "Líder revuelta contra España", "Asesinado en Delft"], en:["Father of the Fatherland", "Revolt against Spain", "Assassinated in Delft"]} },
+            
+            // NAPOLEÓN
+            { type: 'gap', title: {es:"Dominio Francés", en:"French Rule"}, desc: {es:"República Bátava / Reino de Holanda (Luis Bonaparte)", en:"Batavian Rep. / Kingdom of Holland"}, y:"1795-1813" },
+
+            // REINO UNIDO DE LOS PAÍSES BAJOS
+            { type: 'king', n: "Guillermo I", y: "1815-1840", d: "Orange", c: "d-gold", i: "lion", born: "La Haya", died: "71", succ: "Guillermo II", facts: {es:["Primer Rey de Países Bajos", "Unión con Bélgica (hasta 1830)", "Abdicó"], en:["First King", "Union with Belgium", "Abdicated"]} },
+            { type: 'king', n: "Guillermo II", y: "1840-1849", d: "Orange", c: "d-gold", i: "lion", born: "La Haya", died: "56", succ: "Guillermo III", facts: {es:["Convirtió al país en democracia parlamentaria (1848)", "Héroe de Waterloo"], en:["Allowed parliamentary democracy (1848)", "Hero of Waterloo"]} },
+            { type: 'king', n: "Guillermo III", y: "1849-1890", d: "Orange", c: "d-gold", i: "lion", born: "Bruselas", died: "73", succ: "Guillermina", facts: {es:["Último monarca con poder político real", "Fin de la unión personal con Luxemburgo"], en:["Last monarch with real political power", "End of Luxembourg union"]} },
+
+            // ERA DE LAS REINAS
+            { type: 'king', n: "Guillermina", y: "1890-1948", d: "Orange", c: "d-gold", i: "lion", born: "La Haya", died: "82", succ: "Juliana", facts: {es:["Reinado de 58 años", "Símbolo de resistencia en la II Guerra Mundial (desde Londres)", "Abdicó"], en:["Reigned 58 years", "WWII Resistance symbol", "Abdicated"]} },
+            { type: 'king', n: "Juliana", y: "1948-1980", d: "Orange", c: "d-gold", i: "lion", born: "La Haya", died: "94", succ: "Beatriz", facts: {es:["La 'Reina en bicicleta'", "Independencia de Indonesia", "Abdicó"], en:["The 'Bicycling Queen'", "Indonesian independence", "Abdicated"]} },
+            { type: 'king', n: "Beatriz", y: "1980-2013", d: "Orange", c: "d-gold", i: "lion", born: "Baarn", died: "-", succ: "Guillermo A.", facts: {es:["Reina muy popular", "Modernización de la monarquía", "Abdicó en favor de su hijo"], en:["Very popular queen", "Modernized monarchy", "Abdicated for son"]} },
+            
+            // REY ACTUAL
+            { type: 'king', n: "Guillermo Alejandro", y: "2013-Pte", d: "Orange", c: "d-gold", i: "lion", born: "Utrecht", died: "-", succ: "Amalia", facts: {es:["Primer rey hombre en 123 años", "Especialista en gestión de aguas", "Casado con Máxima Zorreguieta"], en:["First king in 123 years", "Water management expert", "Married to Maxima"]} }
+        ];
+
+        function getSVG(t) {
+            const c = {o:"#e67e22", b:"#2980b9", w:"#fff", k:"#2c3e50"};
+            let p = '';
+            // León de Nassau
+            if(t==='lion') p=`<path d="M20 10 h60 v50 a30 30 0 0 1 -60 0 z" fill="${c.b}" stroke="${c.k}"/><circle cx="50" cy="40" r="15" fill="${c.o}"/>`;
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+            const labels = { es: { born:"Nace", died:"Muere", succ:"Sucesor" }, en: { born:"Born", died:"Died", succ:"Successor" } }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                if (item.type === 'gap') {
+                    card.className = 'gap-card';
+                    card.innerHTML = `<div class="gap-title">${item.title[lang]}</div><div style="font-weight:bold; font-size:1.2em; color:#e74c3c;">${item.y}</div>${getSVG('gap')}<div class="gap-desc" style="margin-top:10px">${item.desc[lang]}</div>`;
+                } else {
+                    card.className = `monarch-card ${item.c}`;
+                    const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                    card.innerHTML = `<div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div><div class="card-header"><div class="monarch-name">${item.n}</div>${getSVG(item.i)}</div><div class="years">${item.y}</div><div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div><div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div><div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div><div class="events-box"><ul class="events-list">${facts}</ul></div>`;
+                }
+                container.appendChild(card);
+            });
+        }
+        renderTimeline();
+    </script>
+</body>
+</html>

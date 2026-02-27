@@ -1,0 +1,278 @@
+/* estilos.css */
+:root {
+    --primary: #2c3e50;
+    --accent: #e74c3c;
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --gap-bg: #e0e0e0;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    color: var(--text-color);
+    padding-bottom: 60px;
+}
+
+/* --- Barra Superior --- */
+.top-bar {
+    background: rgba(255, 255, 255, 0.98);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-btn {
+    text-decoration: none;
+    background: var(--primary);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: transform 0.2s;
+}
+
+.nav-btn:hover { transform: scale(1.05); background: #34495e; }
+
+.app-title { font-size: 1.2em; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+
+/* --- Contenedores --- */
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+.hero { text-align: center; margin-bottom: 40px; }
+.hero h1 { font-size: 2.5em; margin-bottom: 10px; color: var(--primary); }
+.hero p { color: #7f8c8d; font-size: 1.1em; }
+
+/* --- Grid de Países (Index) --- */
+.country-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.country-card {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-color);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 2px solid transparent;
+    display: block;
+}
+
+.country-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    border-color: var(--accent);
+}
+
+.flag-svg { height: 80px; width: auto; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+.country-name { font-size: 1.4em; font-weight: bold; display: block; }
+
+/* --- Línea de Tiempo (Países) --- */
+.timeline-container {
+    display: flex;
+    overflow-x: auto;
+    padding: 20px 0 50px 0;
+    gap: 40px;
+    align-items: flex-start;
+    scroll-behavior: smooth;
+    min-height: 600px;
+}
+.timeline-container::-webkit-scrollbar { height: 12px; }
+.timeline-container::-webkit-scrollbar-track { background: #ecf0f1; border-radius: 6px; }
+.timeline-container::-webkit-scrollbar-thumb { background: #95a5a6; border-radius: 6px; }
+
+/* Tarjeta de Monarca */
+.monarch-card {
+    flex: 0 0 320px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    display: flex; flex-direction: column; gap: 8px;
+}
+
+/* Línea conectora */
+.monarch-card::after {
+    content: ''; position: absolute; top: 50%; right: -42px; width: 42px; height: 4px; background: #ccc; z-index: 0;
+}
+.monarch-card:last-child::after { display: none; }
+
+/* Header de Tarjeta */
+.card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 5px; }
+.monarch-name { font-size: 1.2em; font-weight: bold; color: var(--primary); line-height: 1.2; width: 85%; }
+.dynasty-badge { position: absolute; top: -12px; right: 20px; padding: 4px 10px; border-radius: 12px; font-size: 0.75em; color: white; font-weight: bold; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+/* Datos */
+.years { font-weight: bold; color: var(--accent); font-size: 1em; }
+.detail-row { font-size: 0.9em; color: #555; display: flex; gap: 5px; }
+.label { font-weight: bold; color: #333; }
+
+/* Eventos */
+.events-box { background: #fffde7; padding: 10px; border-radius: 6px; font-size: 0.85em; border-left: 4px solid #fbc02d; margin-top: 5px; }
+.events-list { padding-left: 18px; margin: 0; }
+.events-list li { margin-bottom: 4px; }
+
+/* Tarjetas de Gap (Repúblicas, etc) */
+.gap-card {
+    flex: 0 0 260px;
+    background: var(--gap-bg);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    border: 2px dashed #a0a0a0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    color: #555;
+}
+.gap-card::after { content: ''; position: absolute; top: 50%; right: -42px; width: 42px; height: 4px; background: #ccc; z-index: 0; }
+.gap-title { font-weight: bold; font-size: 1.1em; margin: 10px 0; color: #333; }
+.gap-desc { font-style: italic; font-size: 0.9em; }
+
+/* Colores Dinastías */
+.d-red { border-top: 5px solid #e74c3c; } .bg-red { background: #e74c3c; }
+.d-blue { border-top: 5px solid #3498db; } .bg-blue { background: #3498db; }
+.d-gold { border-top: 5px solid #f1c40f; } .bg-gold { background: #f1c40f; }
+.d-black { border-top: 5px solid #2c3e50; } .bg-black { background: #2c3e50; }
+.d-green { border-top: 5px solid #27ae60; } .bg-green { background: #27ae60; }
+.d-purple { border-top: 5px solid #8e44ad; } .bg-purple { background: #8e44ad; }
+
+/* --- CRONOGRAMA COMPARATIVO (Gantt) --- */
+.timeline-section {
+    padding: 50px 20px;
+    background: #111; /* Fondo más oscuro para contraste */
+    border-top: 1px solid var(--glass-border);
+    margin-top: 50px;
+}
+
+.timeline-wrapper {
+    position: relative;
+    overflow-x: auto;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    /* La altura se ajustará dinámicamente, pero ponemos un mínimo */
+    min-height: 400px; 
+}
+
+/* La rejilla de fondo */
+.timeline-grid {
+    position: absolute;
+    top: 0;
+    left: 150px; /* Espacio para nombres de países */
+    height: 100%;
+    border-left: 1px solid #444;
+    pointer-events: none;
+}
+
+/* Encabezado de años */
+.timeline-years {
+    display: flex;
+    margin-left: 150px;
+    border-bottom: 1px solid #555;
+    background: #222;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 30px;
+    align-items: center;
+}
+
+.year-marker {
+    font-size: 0.7em;
+    color: #888;
+    border-left: 1px solid #444;
+    padding-left: 5px;
+    position: absolute;
+    height: 100vh; /* Línea vertical guía */
+    top: 0;
+    pointer-events: none; /* Para que no moleste el click */
+    opacity: 0.3;
+}
+
+/* Filas de Países */
+.country-row {
+    position: relative;
+    height: 50px; /* Altura de cada carril */
+    border-bottom: 1px solid #333;
+    margin-left: 150px; /* Dejar sitio al nombre */
+    transition: background 0.2s;
+}
+.country-row:hover { background: rgba(255,255,255,0.05); }
+
+/* Etiqueta del país (Sticky a la izquierda) */
+.row-label {
+    position: absolute;
+    left: -150px;
+    width: 150px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+    background: #1a1a1a;
+    border-right: 1px solid #555;
+    border-bottom: 1px solid #333;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8em;
+    color: var(--gold);
+    z-index: 10;
+}
+.row-flag { width: 20px; height: 15px; margin-right: 8px; border-radius: 2px; }
+
+/* Barras de Reinado */
+.reign-bar {
+    position: absolute;
+    height: 30px;
+    top: 10px;
+    background: var(--primary); /* Color por defecto */
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 0.7em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.2s, z-index 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.reign-bar:hover {
+    transform: scaleY(1.2) scaleX(1.02);
+    z-index: 100;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    border-color: var(--gold);
+}
+.reign-text { padding: 0 5px; text-shadow: 0 1px 2px black; font-family: 'Lato', sans-serif;}
+
+/* Notas al pie para reinados cortos */
+.footnote-symbol {
+    width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-weight: bold; background: #fff; color: #000; border-radius: 50%;
+}
+.footnotes-area {
+    padding: 20px;
+    color: #aaa;
+    font-size: 0.85em;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}

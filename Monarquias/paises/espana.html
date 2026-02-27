@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de España - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css"> </head>
+<body>
+    
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn">
+            <span>⬅</span> Menú Principal
+        </a>
+        <div class="app-title">ESPAÑA</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Hispánica</h1>
+            <p id="pageSub">De la Reconquista a la Monarquía Parlamentaria</p>
+        </div>
+
+        <div class="timeline-container" id="timeline">
+            </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DETALLADA DE ESPAÑA ---
+        const DB = [
+            // REINO DE ASTURIAS (Origen)
+            { type: 'gap', title: {es:"Reino de Asturias", en:"Kingdom of Asturias"}, desc: {es:"Inicio de la Reconquista (718)", en:"Start of Reconquista (718)"}, y:"718-910" },
+            { type: 'king', n: "Don Pelayo", y: "718-737", d: "Astur", c: "d-blue", i: "cross", born: "Asturias", died: "Cangas", succ: "Favila", facts: {es:["Victoria en Covadonga (722)", "Primer Rey de Asturias"], en:["Victory at Covadonga", "First King of Asturias"]} },
+            { type: 'king', n: "Alfonso I el Católico", y: "739-757", d: "Astur", c: "d-blue", i: "cross", born: "Cantabria", died: "Cangas", succ: "Fruela I", facts: {es:["Primera expansión territorial", "Repoblación del norte"], en:["Territorial expansion", "Repopulation of the north"]} },
+            { type: 'king', n: "Alfonso II el Casto", y: "791-842", d: "Astur", c: "d-blue", i: "cross", born: "Oviedo", died: "90", succ: "Ramiro I", facts: {es:["Descubrimiento tumba Santiago", "Establece corte en Oviedo"], en:["Discovery of St James tomb", "Court moved to Oviedo"]} },
+            { type: 'king', n: "Alfonso III el Magno", y: "866-910", d: "Astur", c: "d-blue", i: "cross", born: "848", died: "910", succ: "García I", facts: {es:["Máxima expansión asturiana", "Frontera en el Duero"], en:["Maximum expansion", "Border at Duero river"]} },
+
+            // REINO DE LEÓN Y CASTILLA (Selección clave pre-unificación)
+            { type: 'gap', title: {es:"Reinos de León y Castilla", en:"Kingdoms of Leon & Castile"}, desc: {es:"Consolidación medieval", en:"Medieval consolidation"}, y:"910-1474" },
+            { type: 'king', n: "Fernando I el Magno", y: "1037-1065", d: "Jimena", c: "d-red", i: "castle", born: "1016", died: "1065", succ: "Sancho II", facts: {es:["Primer rey de Castilla", "Unificó León y Castilla"], en:["First King of Castile", "Unified Leon and Castile"]} },
+            { type: 'king', n: "Alfonso VI el Bravo", y: "1065-1109", d: "Jimena", c: "d-red", i: "castle", born: "1040", died: "1109", succ: "Urraca", facts: {es:["Conquista de Toledo (1085)", "Cid Campeador fue su vasallo"], en:["Conquest of Toledo", "El Cid was his vassal"]} },
+            { type: 'king', n: "Alfonso VIII", y: "1158-1214", d: "Borgoña", c: "d-red", i: "castle", born: "Soria", died: "58", succ: "Enrique I", facts: {es:["Batalla de Las Navas de Tolosa (1212)", "Freno a los almohades"], en:["Battle of Las Navas de Tolosa", "Stopped Almohad caliphate"]} },
+            { type: 'king', n: "Fernando III el Santo", y: "1217-1252", d: "Borgoña", c: "d-red", i: "castle", born: "Zamora", died: "50", succ: "Alfonso X", facts: {es:["Unión definitiva León y Castilla", "Conquista Córdoba y Sevilla"], en:["Definitive union Leon/Castile", "Conquered Cordoba/Seville"]} },
+            { type: 'king', n: "Alfonso X el Sabio", y: "1252-1284", d: "Borgoña", c: "d-red", i: "castle", born: "Toledo", died: "62", succ: "Sancho IV", facts: {es:["Escuela de Traductores de Toledo", "Las Siete Partidas"], en:["Toledo School of Translators", "Siete Partidas code"]} },
+            
+            // UNIFICACIÓN (Reyes Católicos)
+            { type: 'gap', title: {es:"Monarquía Hispánica", en:"Spanish Monarchy"}, desc: {es:"Unión Dinástica", en:"Dynastic Union"}, y:"1474-1700" },
+            { type: 'king', n: "Isabel I y Fernando II", y: "1474-1516", d: "Trastámara", c: "d-purple", i: "castle", born: "1451/1452", died: "1504/1516", succ: "Juana I", facts: {es:["Conquista de Granada (1492)", "Descubrimiento de América", "Expulsión de los judíos"], en:["Conquest of Granada", "Discovery of America", "Expulsion of Jews"]} },
+            { type: 'king', n: "Juana I (La Loca)", y: "1504-1555", d: "Trastámara", c: "d-purple", i: "castle", born: "Toledo", died: "74", succ: "Carlos I", facts: {es:["Reina nominal", "Encerrada en Tordesillas 46 años"], en:["Nominal queen", "Locked in Tordesillas 46 years"]} },
+            
+            // AUSTRIAS
+            { type: 'king', n: "Carlos I (V)", y: "1516-1556", d: "Habsburgo", c: "d-black", i: "eagle", born: "Gante", died: "58", succ: "Felipe II", facts: {es:["Emperador Sacro Imperio", "Conquista de México y Perú", "Contrarreforma"], en:["Holy Roman Emperor", "Conquest of Mexico/Peru", "Counter-Reformation"]} },
+            { type: 'king', n: "Felipe II", y: "1556-1598", d: "Habsburgo", c: "d-black", i: "eagle", born: "Valladolid", died: "71", succ: "Felipe III", facts: {es:["Unión Ibérica (Portugal)", "Batalla de Lepanto", "Armada Invencible"], en:["Iberian Union (Portugal)", "Battle of Lepanto", "Spanish Armada"]} },
+            { type: 'king', n: "Felipe III", y: "1598-1621", d: "Habsburgo", c: "d-black", i: "eagle", born: "Madrid", died: "42", succ: "Felipe IV", facts: {es:["Gobierno de validos (Lerma)", "Expulsión de los moriscos", "Paz con Inglaterra"], en:["Rule by favorites (Lerma)", "Expulsion of Moriscos", "Peace with England"]} },
+            { type: 'king', n: "Felipe IV", y: "1621-1665", d: "Habsburgo", c: "d-black", i: "eagle", born: "Valladolid", died: "60", succ: "Carlos II", facts: {es:["Siglo de Oro (Velázquez)", "Guerra de los 30 Años", "Independencia de Portugal"], en:["Golden Age (Velazquez)", "30 Years War", "Portuguese Independence"]} },
+            { type: 'king', n: "Carlos II", y: "1665-1700", d: "Habsburgo", c: "d-black", i: "eagle", born: "Madrid", died: "38", succ: "Felipe V", facts: {es:["El Hechizado", "Problemas sucesorios", "Fin de los Habsburgo"], en:["The Bewitched", "Succession crisis", "End of Habsburgs"]} },
+
+            // BORBONES (S. XVIII)
+            { type: 'gap', title: {es:"Guerra de Sucesión", en:"War of Succession"}, desc: {es:"1700-1713", en:"1700-1713"}, y:"1700-1713" },
+            { type: 'king', n: "Felipe V", y: "1700-1746", d: "Borbón", c: "d-blue", i: "fleur", born: "Versalles", died: "62", succ: "Luis I / Fernando VI", facts: {es:["Primer Borbón", "Decretos de Nueva Planta", "Reinado más largo (con interrupción)"], en:["First Bourbon", "Centralization decrees", "Longest reign"]} },
+            { type: 'king', n: "Luis I", y: "1724", d: "Borbón", c: "d-blue", i: "fleur", born: "Madrid", died: "17", succ: "Felipe V", facts: {es:["El Bien Amado", "Reinó solo 7 meses", "Murió de viruela"], en:["The Beloved", "Reigned 7 months", "Died of smallpox"]} },
+            { type: 'king', n: "Fernando VI", y: "1746-1759", d: "Borbón", c: "d-blue", i: "fleur", born: "Madrid", died: "45", succ: "Carlos III", facts: {es:["Política de Neutralidad", "Catastro de Ensenada", "Creación Real Academia"], en:["Neutrality policy", "Ensenada Census", "Royal Academy"]} },
+            { type: 'king', n: "Carlos III", y: "1759-1788", d: "Borbón", c: "d-blue", i: "fleur", born: "Madrid", died: "72", succ: "Carlos IV", facts: {es:["El mejor alcalde de Madrid", "Despotismo Ilustrado", "Expulsión Jesuitas"], en:["Best Mayor of Madrid", "Enlightened Despotism", "Jesuits expelled"]} },
+            { type: 'king', n: "Carlos IV", y: "1788-1808", d: "Borbón", c: "d-blue", i: "fleur", born: "Nápoles", died: "70", succ: "José I", facts: {es:["Influencia de Godoy", "Batalla de Trafalgar", "Motín de Aranjuez"], en:["Influence of Godoy", "Battle of Trafalgar", "Mutiny of Aranjuez"]} },
+
+            // GUERRA INDEPENDENCIA
+            { type: 'gap', title: {es:"Guerra Independencia", en:"Peninsular War"}, desc: {es:"Invasión Napoleónica", en:"Napoleonic Invasion"}, y:"1808-1813" },
+            { type: 'king', n: "José I Bonaparte", y: "1808-1813", d: "Bonaparte", c: "d-red", i: "eagle", born: "Córcega", died: "76", succ: "Fernando VII", facts: {es:["Pepe Botella", "Impuesto por Napoleón", "Estatuto de Bayona"], en:["Imposed by Napoleon", "Bayonne Statute"]} },
+
+            // S. XIX
+            { type: 'king', n: "Fernando VII", y: "1813-1833", d: "Borbón", c: "d-blue", i: "fleur", born: "El Escorial", died: "48", succ: "Isabel II", facts: {es:["El Deseado / El Rey Felón", "Derogó Constitución 1812", "Independencia colonias americanas"], en:["Abolished 1812 Const", "Loss of American colonies"]} },
+            { type: 'king', n: "Isabel II", y: "1833-1868", d: "Borbón", c: "d-blue", i: "fleur", born: "Madrid", died: "73", succ: "Sexenio", facts: {es:["Guerras Carlistas", "Revolución Industrial incipiente", "Exiliada en 1868"], en:["Carlist Wars", "Industrial Revolution", "Exiled 1868"]} },
+
+            // SEXENIO
+            { type: 'gap', title: {es:"Sexenio Democrático", en:"Democratic Six Years"}, desc: {es:"Revolución Gloriosa", en:"Glorious Revolution"}, y:"1868-1874" },
+            { type: 'king', n: "Amadeo I", y: "1870-1873", d: "Saboya", c: "d-green", i: "cross", born: "Turín", died: "44", succ: "República", facts: {es:["Rey electo por Cortes", "Abdicó por ingobernabilidad", "Atentado fallido"], en:["Elected King", "Abdicated due to chaos"]} },
+            { type: 'gap', title: {es:"I República", en:"First Republic"}, desc: {es:"1873-1874 (4 Presidentes)", en:"1873-1874 (4 Presidents)"}, y:"1873-1874" },
+
+            // RESTAURACIÓN
+            { type: 'king', n: "Alfonso XII", y: "1874-1885", d: "Borbón", c: "d-blue", i: "fleur", born: "Madrid", died: "27", succ: "Alfonso XIII", facts: {es:["El Pacificador", "Constitución 1876", "Murió de tuberculosis"], en:["The Peacemaker", "Const 1876", "Died of tuberculosis"]} },
+            { type: 'king', n: "Alfonso XIII", y: "1886-1931", d: "Borbón", c: "d-blue", i: "fleur", born: "Madrid", died: "54", succ: "II República", facts: {es:["Hijo póstumo", "Guerra de Marruecos", "Apoyó dictadura Primo de Rivera"], en:["Posthumous son", "Morocco War", "Supported dictatorship"]} },
+
+            // S. XX
+            { type: 'gap', title: {es:"II República", en:"Second Republic"}, desc: {es:"1931-1939", en:"1931-1939"}, y:"1931-1939" },
+            { type: 'gap', title: {es:"Dictadura Franquista", en:"Franco Dictatorship"}, desc: {es:"Guerra Civil y Dictadura", en:"Civil War & Dictatorship"}, y:"1939-1975" },
+
+            // DEMOCRACIA
+            { type: 'king', n: "Juan Carlos I", y: "1975-2014", d: "Borbón", c: "d-blue", i: "fleur", born: "Roma", died: "-", succ: "Felipe VI", facts: {es:["Motor de la Transición", "Frenó golpe 23F", "Abdicó en 2014"], en:["Transition driver", "Stopped 1981 coup", "Abdicated 2014"]} },
+            { type: 'king', n: "Felipe VI", y: "2014-Pte", d: "Borbón", c: "d-blue", i: "fleur", born: "Madrid", died: "-", succ: "Leonor", facts: {es:["Rey Constitucional", "Modernización Corona", "Discurso 3-Oct"], en:["Constitutional King", "Crown modernization"]} }
+        ];
+
+        // --- FUNCIONES DE RENDERIZADO ---
+        function getSVG(t) {
+            // Iconos simples para los escudos
+            const c = {r:"#e74c3c", y:"#f1c40f", b:"#2980b9", w:"#ffffff", k:"#2c3e50", g:"#27ae60"};
+            const shield = 'd="M20 10 h60 v50 a30 30 0 0 1 -60 0 z"';
+            let p = '';
+            if(t==='castle') p=`<path ${shield} fill="${c.r}" stroke="${c.k}"/><rect x="40" y="30" width="20" height="20" fill="${c.y}"/>`;
+            if(t==='eagle') p=`<path ${shield} fill="${c.y}" stroke="${c.k}"/><path d="M30 30 h40 v20 h-40 z" fill="${c.k}"/>`;
+            if(t==='fleur') p=`<path ${shield} fill="${c.b}" stroke="${c.k}"/><circle cx="50" cy="30" r="5" fill="${c.y}"/><circle cx="40" cy="50" r="5" fill="${c.y}"/><circle cx="60" cy="50" r="5" fill="${c.y}"/>`;
+            if(t==='cross') p=`<path ${shield} fill="${c.b}" stroke="${c.k}"/><path d="M50 10 v50 M25 35 h50" stroke="${c.y}" stroke-width="8"/>`;
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+
+            // Etiquetas
+            const labels = {
+                es: { born:"Nace", died:"Muere", succ:"Sucesor" },
+                en: { born:"Born", died:"Died", succ:"Successor" }
+            }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                
+                if (item.type === 'gap') {
+                    card.className = 'gap-card';
+                    card.innerHTML = `
+                        <div class="gap-title">${item.title[lang]}</div>
+                        <div style="font-weight:bold; font-size:1.2em; color:#e74c3c;">${item.y}</div>
+                        ${getSVG('gap')}
+                        <div class="gap-desc" style="margin-top:10px">${item.desc[lang]}</div>
+                    `;
+                } else {
+                    card.className = `monarch-card ${item.c}`;
+                    const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                    card.innerHTML = `
+                        <div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div>
+                        <div class="card-header">
+                            <div class="monarch-name">${item.n}</div>
+                            ${getSVG(item.i)}
+                        </div>
+                        <div class="years">${item.y}</div>
+                        
+                        <div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div>
+                        <div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div>
+                        <div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div>
+
+                        <div class="events-box">
+                            <ul class="events-list">${facts}</ul>
+                        </div>
+                    `;
+                }
+                container.appendChild(card);
+            });
+        }
+
+        // Inicializar
+        renderTimeline();
+    </script>
+</body>
+</html>

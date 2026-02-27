@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metallic Spheres — Real-Time Ray Tracing</title>
+<meta name="description" content="Real-time ray traced metallic spheres in a 3D panoramic environment with adjustable PBR materials and ambient audio.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#000;font-family:'Segoe UI',system-ui,sans-serif;color:#e0e0e0}
+canvas{display:block;width:100vw;height:100vh}
+#loading{
+  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3a);transition:opacity .6s ease;
+}
+#loading.done{opacity:0;pointer-events:none}
+#loading h1{font-size:22px;color:#8af;margin-bottom:12px;letter-spacing:2px}
+#loading p{font-size:13px;color:#889;margin-bottom:20px}
+.spinner{width:40px;height:40px;border:3px solid rgba(100,170,255,.15);border-top-color:#6af;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#controls{
+  position:fixed;top:16px;right:16px;width:280px;
+  background:rgba(10,10,20,.85);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.08);border-radius:14px;
+  padding:20px 18px 16px;z-index:10;
+  box-shadow:0 8px 32px rgba(0,0,0,.55);
+  transition:transform .3s ease,opacity .3s ease;
+  max-height:calc(100vh - 32px);overflow-y:auto;
+}
+#controls.collapsed{transform:translateX(calc(100% + 20px));opacity:0;pointer-events:none}
+#controls h2{font-size:13px;text-transform:uppercase;letter-spacing:1.6px;color:#8af;margin-bottom:14px;font-weight:600}
+.ctrl-group{margin-bottom:10px}
+.ctrl-group label{display:flex;justify-content:space-between;font-size:11.5px;color:#aab;margin-bottom:3px}
+.ctrl-group label span{color:#7cf;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:rgba(255,255,255,.1);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#6af,#a6f);cursor:grab;box-shadow:0 0 6px rgba(100,170,255,.5)}
+input[type=color]{-webkit-appearance:none;border:none;width:36px;height:24px;border-radius:6px;cursor:pointer;background:none;padding:0}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:1px solid rgba(255,255,255,.15);border-radius:5px}
+.color-row{display:flex;align-items:center;gap:10px;margin-top:4px}
+.color-row label{margin:0;flex:1;font-size:11px}
+.sep{height:1px;background:rgba(255,255,255,.06);margin:12px 0}
+.chk-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.chk-row input[type=checkbox]{accent-color:#6af;width:14px;height:14px}
+.chk-row label{font-size:11.5px;color:#aab;cursor:pointer}
+#toggle-btn{
+  position:fixed;top:18px;right:18px;z-index:11;width:36px;height:36px;
+  border-radius:10px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(10,10,20,.7);backdrop-filter:blur(10px);
+  color:#8af;font-size:18px;cursor:pointer;display:none;
+  align-items:center;justify-content:center;transition:background .2s;
+}
+#toggle-btn:hover{background:rgba(30,30,60,.9)}
+#toggle-btn.show{display:flex}
+#audio-btn{
+  position:fixed;bottom:14px;right:14px;z-index:11;
+  width:44px;height:44px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(10,10,20,.75);backdrop-filter:blur(10px);
+  color:#8af;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,transform .15s;
+}
+#audio-btn:hover{background:rgba(30,30,60,.9);transform:scale(1.05)}
+#audio-btn.muted{color:#556}
+#fps{position:fixed;bottom:14px;left:14px;font-size:11px;color:rgba(255,255,255,.35);z-index:10;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="loading">
+  <h1>METALLIC SPHERES</h1>
+  <p>Loading environment panorama…</p>
+  <div class="spinner"></div>
+</div>
+<div id="controls">
+  <h2>Material Properties</h2>
+  <div class="ctrl-group">
+    <label>Roughness <span id="v-rough">0.12</span></label>
+    <input type="range" id="roughness" min="0" max="100" value="12">
+  </div>
+  <div class="ctrl-group">
+    <label>Metallic <span id="v-metal">1.00</span></label>
+    <input type="range" id="metallic" min="0" max="100" value="100">
+  </div>
+  <div class="ctrl-group">
+    <label>Reflectivity <span id="v-refl">0.95</span></label>
+    <input type="range" id="reflectivity" min="0" max="100" value="95">
+  </div>
+  <div class="sep"></div>
+  <div class="color-row">
+    <label>Sphere 1</label><input type="color" id="col1" value="#ffd700">
+    <label>Sphere 2</label><input type="color" id="col2" value="#e8e8e8">
+    <label>Sphere 3</label><input type="color" id="col3" value="#e87040">
+  </div>
+  <div class="sep"></div>
+  <div class="ctrl-group">
+    <label>Sphere Radius <span id="v-rad">0.70</span></label>
+    <input type="range" id="radius" min="20" max="150" value="70">
+  </div>
+  <div class="ctrl-group">
+    <label>Sphere Height <span id="v-height">1.20</span></label>
+    <input type="range" id="height" min="50" max="400" value="120">
+  </div>
+  <div class="ctrl-group">
+    <label>Spacing <span id="v-space">2.20</span></label>
+    <input type="range" id="spacing" min="80" max="500" value="220">
+  </div>
+  <div class="sep"></div>
+  <div class="ctrl-group">
+    <label>Sun Azimuth <span id="v-sunaz">45</span></label>
+    <input type="range" id="sunAz" min="0" max="360" value="45">
+  </div>
+  <div class="ctrl-group">
+    <label>Sun Elevation <span id="v-sunel">40</span></label>
+    <input type="range" id="sunEl" min="5" max="85" value="40">
+  </div>
+  <div class="ctrl-group">
+    <label>Env Brightness <span id="v-envbr">1.20</span></label>
+    <input type="range" id="envBr" min="30" max="250" value="120">
+  </div>
+  <div class="sep"></div>
+  <div class="chk-row">
+    <input type="checkbox" id="autoRot" checked>
+    <label for="autoRot">Auto-rotate camera</label>
+  </div>
+</div>
+<button id="toggle-btn" title="Show controls">&#9881;</button>
+<button id="audio-btn" title="Click to play ambient music">&#9835;</button>
+<div id="fps"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════ SHADERS ═══════════ */
+const VERT = `#version 300 es
+in vec2 a;
+void main(){gl_Position=vec4(a,0,1);}`;
+
+const FRAG = `#version 300 es
+precision highp float;
+
+uniform vec2 uRes;
+uniform float uTime;
+uniform vec3 uCamPos, uCamTarget;
+uniform float uRoughness, uMetallic, uReflectivity;
+uniform vec3 uCol1, uCol2, uCol3;
+uniform float uRadius, uSphereH, uSpacing;
+uniform vec3 uSunDir;
+uniform float uEnvBr;
+uniform sampler2D uEnvMap;
+uniform int uEnvReady;
+
+out vec4 fragColor;
+
+const float PI = 3.14159265;
+const float TAU = 6.28318530;
+
+// ── Sample equirectangular environment ──
+vec3 sampleEnv(vec3 rd) {
+  if(uEnvReady == 0) {
+    // Vivid procedural sky fallback
+    float t = max(rd.y, 0.0);
+    vec3 c = mix(vec3(0.50,0.70,1.0), vec3(0.15,0.30,0.90), t);
+    c = mix(c, vec3(1.0,0.85,0.55), exp(-5.0*max(rd.y,0.0))*0.5);
+    float sun = dot(rd, uSunDir);
+    c += vec3(1.0,0.92,0.7)*pow(max(sun,0.0),200.0)*3.0;
+    c += vec3(1.0,0.85,0.6)*pow(max(sun,0.0),20.0)*0.5;
+    return c * uEnvBr;
+  }
+  float u = atan(rd.z, rd.x) / TAU + 0.5;
+  float v = asin(clamp(rd.y, -1.0, 1.0)) / PI + 0.5;
+  vec3 c = texture(uEnvMap, vec2(u, 1.0 - v)).rgb;
+  // Boost vibrancy
+  float lum = dot(c, vec3(0.299, 0.587, 0.114));
+  c = mix(vec3(lum), c, 1.35);
+  return c * uEnvBr;
+}
+
+// ── Ray-sphere (analytical) ──
+float iSphere(vec3 ro, vec3 rd, vec3 ce, float ra) {
+  vec3 oc = ro - ce;
+  float b = dot(oc, rd);
+  float c = dot(oc, oc) - ra*ra;
+  float h = b*b - c;
+  if(h < 0.0) return -1.0;
+  return -b - sqrt(h);
+}
+
+// ── PBR ──
+float D_GGX(float ndh, float a) {
+  float a2 = a*a;
+  float d = ndh*ndh*(a2-1.0)+1.0;
+  return a2/(PI*d*d+0.0001);
+}
+float G_Smith(float ndv, float ndl, float a) {
+  float k = (a+1.0); k = k*k/8.0;
+  return (ndv/(ndv*(1.0-k)+k)) * (ndl/(ndl*(1.0-k)+k));
+}
+vec3 F_Schlick(float ct, vec3 f0) {
+  return f0 + (1.0-f0)*pow(clamp(1.0-ct,0.0,1.0), 5.0);
+}
+
+struct Hit { float t; int mat; vec3 n; };
+
+Hit traceScene(vec3 ro, vec3 rd) {
+  Hit best;
+  best.t = 1e10;
+  best.mat = -1;
+  best.n = vec3(0.0);
+
+  vec3 s1p = vec3(-uSpacing, uSphereH, 0.0);
+  vec3 s2p = vec3(0.0, uSphereH + 0.2, 0.0);
+  vec3 s3p = vec3(uSpacing, uSphereH, 0.0);
+
+  float t1 = iSphere(ro, rd, s1p, uRadius);
+  if(t1 > 0.0 && t1 < best.t) { best.t=t1; best.mat=1; best.n=normalize(ro+rd*t1-s1p); }
+
+  float t2 = iSphere(ro, rd, s2p, uRadius);
+  if(t2 > 0.0 && t2 < best.t) { best.t=t2; best.mat=2; best.n=normalize(ro+rd*t2-s2p); }
+
+  float t3 = iSphere(ro, rd, s3p, uRadius);
+  if(t3 > 0.0 && t3 < best.t) { best.t=t3; best.mat=3; best.n=normalize(ro+rd*t3-s3p); }
+
+  return best;
+}
+
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5*uRes) / uRes.y;
+
+  vec3 ro = uCamPos;
+  vec3 ta = uCamTarget;
+  vec3 ww = normalize(ta - ro);
+  vec3 uu = normalize(cross(ww, vec3(0,1,0)));
+  vec3 vv = cross(uu, ww);
+  vec3 rd = normalize(uv.x*uu + uv.y*vv + 1.6*ww);
+
+  vec3 sunCol = vec3(1.5, 1.35, 1.1) * 2.2;
+
+  Hit hit = traceScene(ro, rd);
+  vec3 col;
+
+  if(hit.mat < 0) {
+    // Environment background — NO ground plane
+    col = sampleEnv(rd);
+  } else {
+    vec3 p = ro + rd * hit.t;
+    vec3 n = hit.n;
+    vec3 v = normalize(ro - p);
+
+    vec3 albedo = hit.mat==1 ? uCol1 : hit.mat==2 ? uCol2 : uCol3;
+    float rough = uRoughness;
+    float metal = uMetallic;
+    // uReflectivity is the MASTER reflection control (0 = absolutely no reflections)
+    float reflAmount = uReflectivity;
+
+    float ndl = max(dot(n, uSunDir), 0.0);
+    vec3 h2 = normalize(uSunDir + v);
+    float ndv = max(dot(n, v), 0.001);
+    float ndh = max(dot(n, h2), 0.0);
+    float hdv = max(dot(h2, v), 0.0);
+
+    // PBR base reflectance: controlled by reflectivity slider
+    vec3 f0 = mix(vec3(0.04), albedo, metal) * reflAmount;
+
+    float a = max(rough, 0.04);
+    float D = D_GGX(ndh, a);
+    float G = G_Smith(ndv, ndl, a);
+    vec3 F = F_Schlick(hdv, f0);
+
+    // Specular highlight (also scaled by reflectivity)
+    vec3 spec = D*G*F / (4.0*ndv*ndl + 0.001) * reflAmount;
+    vec3 kd = (1.0-F) * (1.0-metal);
+
+    // Direct lighting
+    col = (kd*albedo/PI + spec) * sunCol * ndl;
+
+    // Ambient light: use flat ambient when reflectivity is low to avoid
+    // environment-map-like appearance on supposedly non-reflective surfaces
+    vec3 flatAmb = vec3(0.15, 0.14, 0.13); // neutral flat ambient
+    vec3 envAmb = sampleEnv(n) * 0.12;      // environment-sampled ambient
+    // Blend: at reflAmount=0, use only flat ambient; at reflAmount=1, use env ambient
+    vec3 ambLight = mix(flatAmb, envAmb, reflAmount);
+    col += ambLight * albedo * (1.0 - metal * 0.7);
+
+    // ── Reflections: ONLY if reflectivity > 0 ──
+    if(reflAmount > 0.005) {
+      vec3 refDir = reflect(-v, n);
+
+      // Trace reflected ray against other spheres
+      Hit rh = traceScene(p + n*0.02, refDir);
+      vec3 refCol;
+
+      if(rh.mat < 0) {
+        // Reflected ray hits environment
+        refCol = sampleEnv(refDir);
+      } else {
+        // Reflected ray hits another sphere
+        vec3 rp = p + n*0.02 + refDir*rh.t;
+        vec3 rn = rh.n;
+        vec3 rAlb = rh.mat==1 ? uCol1 : rh.mat==2 ? uCol2 : uCol3;
+        float rndl = max(dot(rn, uSunDir), 0.0);
+        vec3 rEnv = sampleEnv(rn) * 0.12;
+
+        refCol = rAlb * (sunCol * rndl * 0.6 + rEnv);
+
+        // Second bounce: reflected sphere reflects environment
+        vec3 rr = reflect(-refDir, rn);
+        vec3 envRef = sampleEnv(rr);
+        float rMix = reflAmount * metal;
+        refCol = mix(refCol, envRef * rAlb, rMix * 0.5);
+      }
+
+      // Roughness blurs reflections: mix sharp reflection with diffuse env
+      vec3 roughEnv = sampleEnv(n) * albedo * 0.4;
+      refCol = mix(refCol, roughEnv, rough * rough);
+
+      // Reflection blending: reflAmount directly controls how much reflection shows
+      vec3 fRef = F_Schlick(ndv, f0);
+      col = mix(col, refCol, fRef * reflAmount);
+    }
+  }
+
+  // Filmic tone mapping (vivid, no haze)
+  col = 1.0 - exp(-col * 1.0);
+
+  // Saturation boost
+  float lum = dot(col, vec3(0.299, 0.587, 0.114));
+  col = mix(vec3(lum), col, 1.2);
+
+  col = pow(max(col, vec3(0.0)), vec3(0.4545));
+  fragColor = vec4(col, 1.0);
+}`;
+
+/* ═══════════ APP ═══════════ */
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', {antialias:false, alpha:false, powerPreference:'high-performance'});
+if(!gl){document.body.innerHTML='<p style="color:#f66;text-align:center;padding:40px;font-size:20px">WebGL 2 required.</p>';return;}
+
+const SCALE = 0.65;
+function resize(){
+  const w=window.innerWidth, h=window.innerHeight;
+  canvas.width=Math.round(w*SCALE*devicePixelRatio);
+  canvas.height=Math.round(h*SCALE*devicePixelRatio);
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+  gl.viewport(0,0,canvas.width,canvas.height);
+}
+window.addEventListener('resize',resize); resize();
+
+function compile(type,src){
+  const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(s));return null;}
+  return s;
+}
+const vs=compile(gl.VERTEX_SHADER,VERT), fs=compile(gl.FRAGMENT_SHADER,FRAG);
+if(!vs||!fs){document.getElementById('loading').innerHTML='<h1 style="color:#f66">Shader Error</h1><p>Check console.</p>';return;}
+
+const prog=gl.createProgram();
+gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(prog));return;}
+gl.useProgram(prog);
+
+const buf=gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const aL=gl.getAttribLocation(prog,'a'); gl.enableVertexAttribArray(aL); gl.vertexAttribPointer(aL,2,gl.FLOAT,false,0,0);
+
+const u={};
+['uRes','uTime','uCamPos','uCamTarget','uRoughness','uMetallic','uReflectivity',
+'uCol1','uCol2','uCol3','uRadius','uSphereH','uSpacing','uSunDir','uEnvBr','uEnvMap','uEnvReady'].forEach(n=>{
+  u[n]=gl.getUniformLocation(prog,n);
+});
+
+/* ── Environment map ── */
+let envReady = 0;
+const envTex = gl.createTexture();
+gl.activeTexture(gl.TEXTURE0);
+gl.bindTexture(gl.TEXTURE_2D, envTex);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([128,180,255,255]));
+gl.uniform1i(u.uEnvMap, 0);
+
+const PANO_URLS = [
+  'https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/rural_asphalt_road.jpg',
+  'https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/kloofendal_43d_clear_puresky.jpg',
+  'https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/meadow_2.jpg'
+];
+
+function loadPano(urls, i) {
+  if(i >= urls.length){console.warn('All panorama URLs failed, using procedural sky');document.getElementById('loading').classList.add('done');return;}
+  const img = new Image(); img.crossOrigin = 'anonymous';
+  img.onload = function(){
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, envTex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    envReady = 1;
+    document.getElementById('loading').classList.add('done');
+  };
+  img.onerror = function(){loadPano(urls, i+1);};
+  img.src = urls[i];
+}
+loadPano(PANO_URLS, 0);
+setTimeout(()=>document.getElementById('loading').classList.add('done'), 8000);
+
+/* ── Controls ── */
+const $=id=>document.getElementById(id);
+function hexToRGB(hex){return[parseInt(hex.substr(1,2),16)/255,parseInt(hex.substr(3,2),16)/255,parseInt(hex.substr(5,2),16)/255];}
+
+const sCfg={
+  roughness:{vId:'v-rough',s:0.01,fmt:v=>(v*0.01).toFixed(2)},
+  metallic:{vId:'v-metal',s:0.01,fmt:v=>(v*0.01).toFixed(2)},
+  reflectivity:{vId:'v-refl',s:0.01,fmt:v=>(v*0.01).toFixed(2)},
+  radius:{vId:'v-rad',s:0.01,fmt:v=>(v*0.01).toFixed(2)},
+  height:{vId:'v-height',s:0.01,fmt:v=>(v*0.01).toFixed(2)},
+  spacing:{vId:'v-space',s:0.01,fmt:v=>(v*0.01).toFixed(2)},
+  sunAz:{vId:'v-sunaz',s:1,fmt:v=>v.toString()},
+  sunEl:{vId:'v-sunel',s:1,fmt:v=>v.toString()},
+  envBr:{vId:'v-envbr',s:0.01,fmt:v=>(v*0.01).toFixed(2)},
+};
+Object.keys(sCfg).forEach(k=>{
+  const el=$(k),vEl=$(sCfg[k].vId);
+  el.addEventListener('input',()=>vEl.textContent=sCfg[k].fmt(parseFloat(el.value)));
+});
+function sv(k){return parseFloat($(k).value)*sCfg[k].s;}
+
+const ctrlPanel=$('controls'),toggleBtn=$('toggle-btn');
+let panelVis=true;
+toggleBtn.addEventListener('click',()=>{panelVis=!panelVis;ctrlPanel.classList.toggle('collapsed',!panelVis);toggleBtn.classList.toggle('show',!panelVis);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){panelVis=!panelVis;ctrlPanel.classList.toggle('collapsed',!panelVis);toggleBtn.classList.toggle('show',!panelVis);}});
+
+/* ── Camera ── */
+let camTheta=0.6,camPhi=0.2,camDist=6.0;
+let autoRotate=true,dragging=false,lastMX=0,lastMY=0;
+canvas.addEventListener('mousedown',e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;});
+window.addEventListener('mouseup',()=>dragging=false);
+window.addEventListener('mousemove',e=>{if(!dragging)return;camTheta-=(e.clientX-lastMX)*0.005;camPhi=Math.max(-0.5,Math.min(1.3,camPhi+(e.clientY-lastMY)*0.005));lastMX=e.clientX;lastMY=e.clientY;});
+canvas.addEventListener('wheel',e=>{camDist=Math.max(2.5,Math.min(20,camDist+e.deltaY*0.008));e.preventDefault();},{passive:false});
+canvas.addEventListener('touchstart',e=>{if(e.touches.length===1){dragging=true;lastMX=e.touches[0].clientX;lastMY=e.touches[0].clientY;}e.preventDefault();},{passive:false});
+canvas.addEventListener('touchmove',e=>{if(!dragging||e.touches.length!==1)return;camTheta-=(e.touches[0].clientX-lastMX)*0.005;camPhi=Math.max(-0.5,Math.min(1.3,camPhi+(e.touches[0].clientY-lastMY)*0.005));lastMX=e.touches[0].clientX;lastMY=e.touches[0].clientY;e.preventDefault();},{passive:false});
+canvas.addEventListener('touchend',()=>dragging=false);
+$('autoRot').addEventListener('change',e=>autoRotate=e.target.checked);
+
+/* ═══════════ GENERATIVE AMBIENT MUSIC ═══════════ */
+let audioCtx=null, audioStarted=false, audioMuted=false, masterGain=null;
+
+function createAmbientMusic(){
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.25;
+  masterGain.connect(audioCtx.destination);
+
+  // ── Reverb via convolution ──
+  const reverbLen = audioCtx.sampleRate * 3;
+  const reverbBuf = audioCtx.createBuffer(2, reverbLen, audioCtx.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d = reverbBuf.getChannelData(ch);
+    for(let i=0;i<reverbLen;i++){
+      d[i] = (Math.random()*2-1) * Math.exp(-i/(audioCtx.sampleRate*0.8));
+    }
+  }
+  const reverb = audioCtx.createConvolver();
+  reverb.buffer = reverbBuf;
+
+  const reverbGain = audioCtx.createGain();
+  reverbGain.gain.value = 0.5;
+  reverb.connect(reverbGain);
+  reverbGain.connect(masterGain);
+
+  const dryGain = audioCtx.createGain();
+  dryGain.gain.value = 0.4;
+  dryGain.connect(masterGain);
+
+  // ── Delay line ──
+  const delay = audioCtx.createDelay(2.0);
+  delay.delayTime.value = 0.75;
+  const delayFb = audioCtx.createGain();
+  delayFb.gain.value = 0.35;
+  const delayFilt = audioCtx.createBiquadFilter();
+  delayFilt.type = 'lowpass';
+  delayFilt.frequency.value = 1200;
+  delay.connect(delayFilt);
+  delayFilt.connect(delayFb);
+  delayFb.connect(delay);
+  delay.connect(reverbGain);
+
+  // ── Note playing function ──
+  function playNote(freq, startTime, duration, vol, pan) {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    // Second detuned oscillator for warmth
+    const osc2 = audioCtx.createOscillator();
+    osc2.type = 'triangle';
+    osc2.frequency.value = freq * 1.002; // slight detune
+
+    const env = audioCtx.createGain();
+    env.gain.value = 0;
+    env.gain.setValueAtTime(0, startTime);
+    env.gain.linearRampToValueAtTime(vol, startTime + 0.15);
+    env.gain.setValueAtTime(vol, startTime + duration * 0.6);
+    env.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+    const filt = audioCtx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 600 + freq * 0.8;
+    filt.Q.value = 0.7;
+
+    // Stereo panning
+    const panner = audioCtx.createStereoPanner();
+    panner.pan.value = pan;
+
+    osc.connect(env);
+    osc2.connect(env);
+    env.connect(filt);
+    filt.connect(panner);
+    panner.connect(dryGain);
+    panner.connect(reverb);
+    panner.connect(delay);
+
+    osc.start(startTime);
+    osc2.start(startTime);
+    osc.stop(startTime + duration + 0.1);
+    osc2.stop(startTime + duration + 0.1);
+  }
+
+  // ── Musical scales and chord progressions ──
+  // Pentatonic scale frequencies across octaves (dreamy, always consonant)
+  const baseNotes = [
+    // C pentatonic: C D E G A
+    130.81, 146.83, 164.81, 196.00, 220.00,  // octave 3
+    261.63, 293.66, 329.63, 392.00, 440.00,  // octave 4
+    523.25, 587.33, 659.26, 783.99, 880.00,  // octave 5
+  ];
+
+  // Chord roots for progression (I -> IV -> V -> vi -> I)
+  const chordSets = [
+    [0,2,4,7,9],   // Cmaj-ish
+    [3,5,7,10,12], // Fmaj-ish
+    [4,7,9,11,14], // Gmaj-ish
+    [0,2,5,7,9],   // Am-ish
+  ];
+
+  let currentChord = 0;
+  let noteTime = audioCtx.currentTime + 0.5;
+
+  function schedulePhrase(){
+    const chord = chordSets[currentChord];
+    const phraseLen = 4 + Math.floor(Math.random()*4); // 4-7 notes per phrase
+
+    for(let i=0;i<phraseLen;i++){
+      const noteIdx = chord[Math.floor(Math.random()*chord.length)];
+      const freq = baseNotes[Math.min(noteIdx, baseNotes.length-1)];
+      const dur = 1.5 + Math.random()*3.0; // 1.5-4.5s long notes
+      const vol = 0.04 + Math.random()*0.06;
+      const pan = (Math.random()-0.5)*1.4; // stereo spread
+
+      playNote(freq, noteTime, dur, vol, pan);
+
+      // Sometimes add a harmony note
+      if(Math.random()>0.5){
+        const harmIdx = chord[Math.floor(Math.random()*chord.length)];
+        const harmFreq = baseNotes[Math.min(harmIdx, baseNotes.length-1)];
+        if(harmFreq !== freq){
+          playNote(harmFreq, noteTime+0.1, dur*0.8, vol*0.5, -pan*0.7);
+        }
+      }
+
+      noteTime += 0.6 + Math.random()*1.2; // spacing between notes
+    }
+
+    // Move to next chord
+    currentChord = (currentChord+1)%chordSets.length;
+
+    // Add a brief pause between phrases
+    noteTime += 1.0 + Math.random()*2.0;
+  }
+
+  // ── Low drone pad ──
+  function createDrone(freq){
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const g = audioCtx.createGain();
+    g.gain.value = 0.03;
+    const filt = audioCtx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 300;
+    osc.connect(filt); filt.connect(g); g.connect(masterGain);
+    osc.start();
+    // Slow LFO on volume
+    const lfo = audioCtx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.04 + Math.random()*0.03;
+    const lfoG = audioCtx.createGain();
+    lfoG.gain.value = 0.015;
+    lfo.connect(lfoG); lfoG.connect(g.gain);
+    lfo.start();
+    return {osc,g};
+  }
+  createDrone(65.41);  // C2 - root drone
+  createDrone(98.00);  // G2 - fifth drone
+
+  // ── Subtle wind noise ──
+  const noiseLen = audioCtx.sampleRate*4;
+  const noiseBuf = audioCtx.createBuffer(2, noiseLen, audioCtx.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d = noiseBuf.getChannelData(ch);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0;i<noiseLen;i++){
+      const w=Math.random()*2-1;
+      b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+      d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.015;
+      b6=w*0.115926;
+    }
+  }
+  const noise = audioCtx.createBufferSource();
+  noise.buffer=noiseBuf; noise.loop=true;
+  const noiseFilt = audioCtx.createBiquadFilter();
+  noiseFilt.type='bandpass'; noiseFilt.frequency.value=300; noiseFilt.Q.value=0.3;
+  const noiseG = audioCtx.createGain();
+  noiseG.gain.value=0.06;
+  noise.connect(noiseFilt); noiseFilt.connect(noiseG); noiseG.connect(masterGain);
+  noise.start();
+
+  // Schedule initial phrases and keep scheduling
+  for(let i=0;i<3;i++) schedulePhrase();
+  setInterval(()=>{
+    // Keep scheduling ahead of playback
+    if(noteTime < audioCtx.currentTime + 10) {
+      schedulePhrase();
+      schedulePhrase();
+    }
+  }, 3000);
+
+  audioStarted = true;
+}
+
+const audioBtn = $('audio-btn');
+audioBtn.addEventListener('click', ()=>{
+  if(!audioStarted){
+    createAmbientMusic();
+    audioMuted=false;
+    audioBtn.classList.remove('muted');
+    audioBtn.innerHTML='&#9835;';
+    audioBtn.title='Click to mute';
+  } else {
+    audioMuted=!audioMuted;
+    if(audioMuted){
+      masterGain.gain.setTargetAtTime(0,audioCtx.currentTime,0.3);
+      audioBtn.classList.add('muted');
+      audioBtn.title='Click to unmute';
+    } else {
+      masterGain.gain.setTargetAtTime(0.25,audioCtx.currentTime,0.3);
+      audioBtn.classList.remove('muted');
+      audioBtn.title='Click to mute';
+    }
+  }
+});
+
+/* ── Render loop ── */
+let fc=0, lastFT=performance.now();
+const fpsEl=$('fps');
+
+function frame(time){
+  const t=time*0.001;
+  if(autoRotate&&!dragging) camTheta+=0.002;
+
+  const cx=Math.cos(camTheta)*Math.cos(camPhi)*camDist;
+  const cy=Math.sin(camPhi)*camDist+0.8;
+  const cz=Math.sin(camTheta)*Math.cos(camPhi)*camDist;
+  const sh=sv('height');
+
+  gl.uniform2f(u.uRes,canvas.width,canvas.height);
+  gl.uniform1f(u.uTime,t);
+  gl.uniform3f(u.uCamPos,cx,cy,cz);
+  gl.uniform3f(u.uCamTarget,0,sh*0.4,0);
+  gl.uniform1f(u.uRoughness,sv('roughness'));
+  gl.uniform1f(u.uMetallic,sv('metallic'));
+  gl.uniform1f(u.uReflectivity,sv('reflectivity'));
+
+  const c1=hexToRGB($('col1').value),c2=hexToRGB($('col2').value),c3=hexToRGB($('col3').value);
+  gl.uniform3f(u.uCol1,c1[0],c1[1],c1[2]);
+  gl.uniform3f(u.uCol2,c2[0],c2[1],c2[2]);
+  gl.uniform3f(u.uCol3,c3[0],c3[1],c3[2]);
+  gl.uniform1f(u.uRadius,sv('radius'));
+  gl.uniform1f(u.uSphereH,sh);
+  gl.uniform1f(u.uSpacing,sv('spacing'));
+
+  const az=sv('sunAz')*Math.PI/180, el=sv('sunEl')*Math.PI/180;
+  gl.uniform3f(u.uSunDir,Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el));
+  gl.uniform1f(u.uEnvBr,sv('envBr'));
+  gl.uniform1i(u.uEnvReady,envReady);
+
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+
+  fc++;
+  const now=performance.now();
+  if(now-lastFT>=1000){fpsEl.textContent=fc+' FPS';fc=0;lastFT=now;}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

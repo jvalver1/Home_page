@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes del Reino Unido - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn">
+            <span>⬅</span> Menú Principal
+        </a>
+        <div class="app-title">REINO UNIDO</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Británica</h1>
+            <p id="pageSub">De Guillermo el Conquistador a la Casa Windsor</p>
+        </div>
+
+        <div class="timeline-container" id="timeline">
+            </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DETALLADA REINO UNIDO ---
+        const DB = [
+            // PRE-1066
+            { type: 'gap', title: {es:"Época Anglosajona", en:"Anglo-Saxon Era"}, desc: {es:"Alfredo el Grande y unificación", en:"Alfred the Great & Unification"}, y:"871-1066" },
+
+            // NORMANDOS
+            { type: 'king', n: "Guillermo I (El Conquistador)", y: "1066-1087", d: "Normandía", c: "d-purple", i: "lion", born: "Falaise", died: "59", succ: "Guillermo II", facts: {es:["Victoria en Hastings (1066)", "Creó el Domesday Book", "Construyó la Torre de Londres"], en:["Victory at Hastings (1066)", "Commissioned Domesday Book", "Built Tower of London"]} },
+            { type: 'king', n: "Guillermo II (Rufus)", y: "1087-1100", d: "Normandía", c: "d-purple", i: "lion", born: "Normandía", died: "40", succ: "Enrique I", facts: {es:["Murió por una flecha cazando", "Relación tensa con la Iglesia"], en:["Killed by arrow while hunting", "Conflict with the Church"]} },
+            { type: 'king', n: "Enrique I", y: "1100-1135", d: "Normandía", c: "d-purple", i: "lion", born: "Selby", died: "67", succ: "Esteban", facts: {es:["Creó la Hacienda Real (Exchequer)", "Muerte de su heredero en el Barco Blanco"], en:["Created the Exchequer", "Heir died in White Ship disaster"]} },
+            { type: 'king', n: "Esteban", y: "1135-1154", d: "Blois", c: "d-purple", i: "lion", born: "Blois", died: "57", succ: "Enrique II", facts: {es:["Guerra civil contra Matilde ('La Anarquía')", "Reinado caótico"], en:["Civil war 'The Anarchy'", "Chaotic reign"]} },
+
+            // PLANTAGENET (Angevinos)
+            { type: 'king', n: "Enrique II", y: "1154-1189", d: "Plantagenet", c: "d-red", i: "lion", born: "Le Mans", died: "56", succ: "Ricardo I", facts: {es:["Imperio Angevino (Inglaterra + Francia)", "Asesinato de Thomas Becket", "Padre del Common Law"], en:["Angevin Empire", "Murder of Thomas Becket", "Father of Common Law"]} },
+            { type: 'king', n: "Ricardo I (Corazón de León)", y: "1189-1199", d: "Plantagenet", c: "d-red", i: "lion", born: "Oxford", died: "41", succ: "Juan I", facts: {es:["Líder de la Tercera Cruzada", "Pasó solo 6 meses en Inglaterra", "Murió por gangrena"], en:["Leader of Third Crusade", "Spent only 6 months in England", "Died of gangrene"]} },
+            { type: 'king', n: "Juan I (Sin Tierra)", y: "1199-1216", d: "Plantagenet", c: "d-red", i: "lion", born: "Oxford", died: "49", succ: "Enrique III", facts: {es:["Firmó la Carta Magna (1215)", "Perdió Normandía ante Francia", "Rey impopular"], en:["Signed Magna Carta (1215)", "Lost Normandy to France", "Unpopular king"]} },
+            { type: 'king', n: "Enrique III", y: "1216-1272", d: "Plantagenet", c: "d-red", i: "lion", born: "Winchester", died: "65", succ: "Eduardo I", facts: {es:["Reinado de 56 años", "Reconstruyó la Abadía de Westminster", "Primer Parlamento electo (De Montfort)"], en:["Reigned 56 years", "Rebuilt Westminster Abbey", "First elected Parliament"]} },
+            { type: 'king', n: "Eduardo I", y: "1272-1307", d: "Plantagenet", c: "d-red", i: "lion", born: "Westminster", died: "68", succ: "Eduardo II", facts: {es:["Conquista de Gales", "Martillo de los Escoceses", "Expulsión de los judíos (1290)"], en:["Conquest of Wales", "Hammer of the Scots", "Expulsion of Jews"]} },
+            { type: 'king', n: "Eduardo II", y: "1307-1327", d: "Plantagenet", c: "d-red", i: "lion", born: "Gales", died: "43", succ: "Eduardo III", facts: {es:["Derrota en Bannockburn", "Depuesto por su esposa Isabel", "Posiblemente asesinado"], en:["Defeat at Bannockburn", "Deposed by wife Isabella", "Possibly murdered"]} },
+            { type: 'king', n: "Eduardo III", y: "1327-1377", d: "Plantagenet", c: "d-red", i: "lion", born: "Windsor", died: "64", succ: "Ricardo II", facts: {es:["Inicio Guerra de los 100 Años", "Fundó la Orden de la Jarretera", "La Peste Negra"], en:["Start of 100 Years War", "Founded Order of the Garter", "Black Death"]} },
+            { type: 'king', n: "Ricardo II", y: "1377-1399", d: "Plantagenet", c: "d-red", i: "lion", born: "Burdeos", died: "33", succ: "Enrique IV", facts: {es:["Revuelta de los Campesinos", "Derrocado por Enrique IV", "Murió de hambre en cautiverio"], en:["Peasants' Revolt", "Deposed by Henry IV", "Starved in captivity"]} },
+
+            // LANCASTER & YORK (Guerra de las Rosas)
+            { type: 'gap', title: {es:"Guerra de las Rosas", en:"Wars of the Roses"}, desc: {es:"Conflicto Civil (1455-1485)", en:"Civil War (1455-1485)"}, y:"1455-1485" },
+            { type: 'king', n: "Enrique IV", y: "1399-1413", d: "Lancaster", c: "d-blue", i: "lion", born: "Lincolnshire", died: "45", succ: "Enrique V", facts: {es:["Primer rey de lengua materna inglesa", "Usurpador del trono"], en:["First native English speaker king", "Usurper of the throne"]} },
+            { type: 'king', n: "Enrique V", y: "1413-1422", d: "Lancaster", c: "d-blue", i: "lion", born: "Gales", died: "36", succ: "Enrique VI", facts: {es:["Victoria en Agincourt (1415)", "Heredero al trono de Francia", "Murió de disentería"], en:["Victory at Agincourt", "Heir to French throne", "Died of dysentery"]} },
+            { type: 'king', n: "Enrique VI", y: "1422-1461", d: "Lancaster", c: "d-blue", i: "lion", born: "Windsor", died: "49", succ: "Eduardo IV", facts: {es:["Rey de Inglaterra y Francia", "Sufrió locura", "Asesinado en la Torre"], en:["King of England and France", "Mental illness", "Murdered in Tower"]} },
+            { type: 'king', n: "Eduardo IV", y: "1461-1483", d: "York", c: "d-gold", i: "lion", born: "Ruan", died: "40", succ: "Eduardo V", facts: {es:["Victoria en Towton", "Introducción de la imprenta", "Matrimonio secreto"], en:["Victory at Towton", "Introduction of printing", "Secret marriage"]} },
+            { type: 'king', n: "Eduardo V", y: "1483", d: "York", c: "d-gold", i: "lion", born: "Westminster", died: "12", succ: "Ricardo III", facts: {es:["Príncipe de la Torre", "Nunca coronado", "Desaparecido (presunto asesinato)"], en:["Prince in the Tower", "Never crowned", "Disappeared (presumed murdered)"]} },
+            { type: 'king', n: "Ricardo III", y: "1483-1485", d: "York", c: "d-gold", i: "lion", born: "Fotheringhay", died: "32", succ: "Enrique VII", facts: {es:["Último rey muerto en batalla", "Derrota en Bosworth", "Jorobado (escoliosis)"], en:["Last king killed in battle", "Defeat at Bosworth", "Hunchback (scoliosis)"]} },
+
+            // TUDOR
+            { type: 'king', n: "Enrique VII", y: "1485-1509", d: "Tudor", c: "d-green", i: "stripes", born: "Gales", died: "52", succ: "Enrique VIII", facts: {es:["Fin de la Guerra de las Rosas", "Restauró las finanzas reales", "Cámara Estrellada"], en:["Ended Wars of the Roses", "Restored royal finances", "Star Chamber"]} },
+            { type: 'king', n: "Enrique VIII", y: "1509-1547", d: "Tudor", c: "d-green", i: "stripes", born: "Greenwich", died: "55", succ: "Eduardo VI", facts: {es:["Ruptura con Roma (Iglesia Anglicana)", "Seis esposas", "Disolución de monasterios"], en:["Break with Rome", "Six wives", "Dissolution of monasteries"]} },
+            { type: 'king', n: "Eduardo VI", y: "1547-1553", d: "Tudor", c: "d-green", i: "stripes", born: "Hampton Court", died: "15", succ: "Juana Grey", facts: {es:["Rey niño protestante", "Libro de Oración Común"], en:["Boy king (Protestant)", "Book of Common Prayer"]} },
+            { type: 'king', n: "María I (Bloody Mary)", y: "1553-1558", d: "Tudor", c: "d-green", i: "stripes", born: "Greenwich", died: "42", succ: "Isabel I", facts: {es:["Intentó restaurar el catolicismo", "Quema de herejes", "Pérdida de Calais"], en:["Attempted Catholic restoration", "Burning of heretics", "Loss of Calais"]} },
+            { type: 'king', n: "Isabel I", y: "1558-1603", d: "Tudor", c: "d-green", i: "stripes", born: "Greenwich", died: "69", succ: "Jacobo I", facts: {es:["La Reina Virgen", "Derrota de la Armada Invencible (1588)", "Era de Shakespeare"], en:["The Virgin Queen", "Defeat of Spanish Armada", "Age of Shakespeare"]} },
+
+            // ESTUARDO (STUART)
+            { type: 'king', n: "Jacobo I", y: "1603-1625", d: "Estuardo", c: "d-blue", i: "lion", born: "Edimburgo", died: "58", succ: "Carlos I", facts: {es:["Unión de las Coronas (Escocia e Inglaterra)", "Conspiración de la Pólvora", "Biblia King James"], en:["Union of the Crowns", "Gunpowder Plot", "King James Bible"]} },
+            { type: 'king', n: "Carlos I", y: "1625-1649", d: "Estuardo", c: "d-blue", i: "lion", born: "Escocia", died: "48", succ: "Cromwell", facts: {es:["Guerra Civil Inglesa", "Gobernó 11 años sin parlamento", "Ejecutado por traición"], en:["English Civil War", "11 Years Tyranny", "Executed for treason"]} },
+
+            // INTERREGNO
+            { type: 'gap', title: {es:"Commonwealth", en:"Commonwealth"}, desc: {es:"República / Protectorado de Cromwell", en:"Republic / Cromwell's Protectorate"}, y:"1649-1660" },
+
+            // RESTAURACIÓN
+            { type: 'king', n: "Carlos II", y: "1660-1685", d: "Estuardo", c: "d-blue", i: "lion", born: "Londres", died: "54", succ: "Jacobo II", facts: {es:["Restauración de la monarquía", "Gran Incendio de Londres (1666)", "Habeas Corpus"], en:["Restoration of monarchy", "Great Fire of London", "Habeas Corpus Act"]} },
+            { type: 'king', n: "Jacobo II", y: "1685-1688", d: "Estuardo", c: "d-blue", i: "lion", born: "Londres", died: "67", succ: "Guillermo III", facts: {es:["Último rey católico", "Depuesto en la Revolución Gloriosa", "Exilio en Francia"], en:["Last Catholic monarch", "Deposed in Glorious Revolution", "Exiled to France"]} },
+            { type: 'king', n: "Guillermo III y María II", y: "1689-1702", d: "Estuardo", c: "d-blue", i: "lion", born: "La Haya", died: "51/32", succ: "Ana", facts: {es:["Declaración de Derechos (Bill of Rights)", "Monarquía Constitucional", "Batalla del Boyne"], en:["Bill of Rights", "Constitutional Monarchy", "Battle of the Boyne"]} },
+            { type: 'king', n: "Ana", y: "1702-1714", d: "Estuardo", c: "d-blue", i: "lion", born: "Londres", died: "49", succ: "Jorge I", facts: {es:["Acta de Unión (1707): Nace Gran Bretaña", "17 embarazos fallidos", "Última Estuardo"], en:["Act of Union (GB created)", "17 failed pregnancies", "Last Stuart"]} },
+
+            // HANOVER
+            { type: 'king', n: "Jorge I", y: "1714-1727", d: "Hanover", c: "d-orange", i: "lion", born: "Alemania", died: "67", succ: "Jorge II", facts: {es:["Alemán, no hablaba inglés", "Auge del Primer Ministro (Walpole)"], en:["German, spoke no English", "Rise of Prime Minister"]} },
+            { type: 'king', n: "Jorge II", y: "1727-1760", d: "Hanover", c: "d-orange", i: "lion", born: "Alemania", died: "77", succ: "Jorge III", facts: {es:["Último rey en liderar tropas en batalla", "Rebelión Jacobita de 1745"], en:["Last king to lead troops into battle", "Jacobite Rising 1745"]} },
+            { type: 'king', n: "Jorge III", y: "1760-1820", d: "Hanover", c: "d-orange", i: "lion", born: "Londres", died: "81", succ: "Jorge IV", facts: {es:["Pérdida de las colonias americanas", "Locura (Porfiria)", "Creación del Reino Unido (1801)"], en:["Loss of American colonies", "Madness (Porphyria)", "UK formed (1801)"]} },
+            { type: 'king', n: "Jorge IV", y: "1820-1830", d: "Hanover", c: "d-orange", i: "lion", born: "Londres", died: "67", succ: "Guillermo IV", facts: {es:["Príncipe Regente extravagante", "Construyó el Pabellón de Brighton"], en:["Extravagant Prince Regent", "Built Brighton Pavilion"]} },
+            { type: 'king', n: "Guillermo IV", y: "1830-1837", d: "Hanover", c: "d-orange", i: "lion", born: "Londres", died: "71", succ: "Victoria", facts: {es:["Abolición de la esclavitud", "Ley de Reforma de 1832"], en:["Abolition of slavery", "Reform Act 1832"]} },
+            { type: 'king', n: "Victoria", y: "1837-1901", d: "Hanover", c: "d-orange", i: "lion", born: "Londres", died: "81", succ: "Eduardo VII", facts: {es:["Apogeo del Imperio Británico", "Revolución Industrial", "La Abuela de Europa"], en:["Peak of British Empire", "Industrial Revolution", "Grandmother of Europe"]} },
+
+            // SAJONIA-COBURGO / WINDSOR
+            { type: 'king', n: "Eduardo VII", y: "1901-1910", d: "Sajonia", c: "d-red", i: "castle", born: "Londres", died: "68", succ: "Jorge V", facts: {es:["Entente Cordiale", "Era Eduardiana (Belle Époque)"], en:["Entente Cordiale", "Edwardian Era"]} },
+            { type: 'king', n: "Jorge V", y: "1910-1936", d: "Windsor", c: "d-red", i: "castle", born: "Londres", died: "70", succ: "Eduardo VIII", facts: {es:["Primera Guerra Mundial", "Cambió apellido a Windsor (1917)", "Estatuto de Westminster"], en:["WWI", "Changed name to Windsor", "Statute of Westminster"]} },
+            { type: 'king', n: "Eduardo VIII", y: "1936", d: "Windsor", c: "d-red", i: "castle", born: "Richmond", died: "77", succ: "Jorge VI", facts: {es:["Abdicó para casarse con Wallis Simpson", "Duque de Windsor"], en:["Abdicated to marry W. Simpson", "Duke of Windsor"]} },
+            { type: 'king', n: "Jorge VI", y: "1936-1952", d: "Windsor", c: "d-red", i: "castle", born: "Norfolk", died: "56", succ: "Isabel II", facts: {es:["Rey durante la II Guerra Mundial", "Superó su tartamudez", "Independencia de la India"], en:["King during WWII", "Overcame stutter", "Independence of India"]} },
+            { type: 'king', n: "Isabel II", y: "1952-2022", d: "Windsor", c: "d-red", i: "castle", born: "Londres", died: "96", succ: "Carlos III", facts: {es:["Reinado más largo de la historia británica", "Descolonización", "Jubileo de Platino"], en:["Longest reign in British history", "Decolonization", "Platinum Jubilee"]} },
+            { type: 'king', n: "Carlos III", y: "2022-Pte", d: "Windsor", c: "d-red", i: "castle", born: "Londres", died: "-", succ: "Guillermo", facts: {es:["Rey de mayor edad al ascender", "Defensor del medio ambiente", "Coronación en 2023"], en:["Oldest king to accede", "Environmental advocate", "Coronation in 2023"]} }
+        ];
+
+        // --- FUNCIONES DE RENDERIZADO (IDÉNTICAS A ESPAÑA) ---
+        function getSVG(t) {
+            const c = {r:"#e74c3c", y:"#f1c40f", b:"#2980b9", w:"#ffffff", k:"#2c3e50", g:"#27ae60", p:"#8e44ad"};
+            const shield = 'd="M20 10 h60 v50 a30 30 0 0 1 -60 0 z"';
+            let p = '';
+            // Iconos específicos UK
+            if(t==='lion') p=`<path ${shield} fill="${c.r}" stroke="${c.k}"/><circle cx="50" cy="40" r="15" fill="${c.y}"/>`; // León
+            if(t==='stripes') p=`<path ${shield} fill="${c.w}" stroke="${c.k}"/><path d="M20 20 h60 M20 35 h60" stroke="${c.g}" stroke-width="5"/>`; // Tudor
+            if(t==='castle') p=`<path ${shield} fill="${c.r}" stroke="${c.k}"/><rect x="40" y="30" width="20" height="20" fill="${c.y}"/>`; // Windsor
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+
+            const labels = {
+                es: { born:"Nace", died:"Muere", succ:"Sucesor" },
+                en: { born:"Born", died:"Died", succ:"Successor" }
+            }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                
+                if (item.type === 'gap') {
+                    card.className = 'gap-card';
+                    card.innerHTML = `
+                        <div class="gap-title">${item.title[lang]}</div>
+                        <div style="font-weight:bold; font-size:1.2em; color:#e74c3c;">${item.y}</div>
+                        ${getSVG('gap')}
+                        <div class="gap-desc" style="margin-top:10px">${item.desc[lang]}</div>
+                    `;
+                } else {
+                    card.className = `monarch-card ${item.c}`;
+                    const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                    card.innerHTML = `
+                        <div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div>
+                        <div class="card-header">
+                            <div class="monarch-name">${item.n}</div>
+                            ${getSVG(item.i)}
+                        </div>
+                        <div class="years">${item.y}</div>
+                        
+                        <div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div>
+                        <div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div>
+                        <div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div>
+
+                        <div class="events-box">
+                            <ul class="events-list">${facts}</ul>
+                        </div>
+                    `;
+                }
+                container.appendChild(card);
+            });
+        }
+
+        renderTimeline();
+    </script>
+</body>
+</html>

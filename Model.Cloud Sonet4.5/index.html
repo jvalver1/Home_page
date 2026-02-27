@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Play the classic Snake game with modern design and smooth controls. Use arrow keys to guide your snake and eat food to grow longer."
+    />
+    <title>Snake Game - Classic Arcade Fun</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="game-wrapper">
+        <div class="header">
+          <h1>Snake Game</h1>
+          <div class="score-board">
+            <div class="score-item">
+              <span class="label">Score</span>
+              <span class="value" id="current-score">0</span>
+            </div>
+            <div class="score-item">
+              <span class="label">High Score</span>
+              <span class="value" id="high-score">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-container">
+          <canvas id="game-canvas"></canvas>
+          <div class="game-overlay" id="game-overlay">
+            <div class="overlay-content">
+              <h2 id="overlay-title">Press SPACE to Start</h2>
+              <p id="overlay-subtitle">Use arrow keys to control the snake</p>
+              <div class="controls-hint">
+                <div class="key-hint">↑</div>
+                <div class="key-row">
+                  <div class="key-hint">←</div>
+                  <div class="key-hint">↓</div>
+                  <div class="key-hint">→</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="game-info">
+            <p>
+              Eat the glowing orbs to grow your snake. Don't hit the walls or
+              yourself!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>

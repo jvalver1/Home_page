@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monarchia | Enciclopedia Real</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-overlay: rgba(10, 10, 20, 0.85);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f0f0f0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lato', sans-serif;
+            background-color: #1a1a1a;
+            /* Imagen de fondo impactante (Biblioteca Real/Palacio) */
+            background-image: url('https://images.unsplash.com/photo-1541680665421-43577d337d47?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* Capa oscura para que se lea el texto */
+        .overlay {
+            background: linear-gradient(to bottom, var(--dark-overlay), rgba(10, 10, 20, 0.95));
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        /* --- Header --- */
+        .hero {
+            text-align: center;
+            padding: 80px 20px 40px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .brand-icon {
+            font-size: 3em;
+            color: var(--gold);
+            margin-bottom: 10px;
+            display: block;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif; /* Fuente estilo romano/real */
+            font-size: 3.5em;
+            margin: 0;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #fff, #d4af37, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3em;
+            font-style: italic;
+            color: #aaa;
+            margin-top: 10px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- Grid de Países --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .country-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            padding-top: 30px;
+            animation: fadeInUp 1s ease-out 0.3s backwards;
+        }
+
+        /* Tarjeta Glassmorphism */
+        .country-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 25px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efecto rebote suave */
+            position: relative;
+            overflow: hidden;
+            group: hover;
+        }
+
+        .country-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--gold);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        /* Imagen de la bandera */
+        .flag-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%; /* Bandera redonda */
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid rgba(255,255,255,0.2);
+            transition: transform 0.4s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .country-card:hover .flag-img {
+            transform: rotate(5deg) scale(1.1);
+            border-color: var(--gold);
+        }
+
+        .country-name {
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #e0e0e0;
+            transition: color 0.3s;
+        }
+
+        .country-card:hover .country-name {
+            color: var(--gold);
+        }
+
+        /* Decoración de fondo en la tarjeta */
+        .card-bg-icon {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 6em;
+            color: rgba(255, 255, 255, 0.03);
+            transform: rotate(-15deg);
+            pointer-events: none;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 50px 0;
+            color: #555;
+            font-size: 0.8em;
+        }
+
+        /* Animaciones */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- CRONOGRAMA COMPARATIVO (Gantt) --- */
+.timeline-section {
+    padding: 50px 20px;
+    background: #111; /* Fondo más oscuro para contraste */
+    border-top: 1px solid var(--glass-border);
+    margin-top: 50px;
+}
+
+.timeline-wrapper {
+    position: relative;
+    overflow-x: auto;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    /* La altura se ajustará dinámicamente, pero ponemos un mínimo */
+    min-height: 400px; 
+}
+
+/* La rejilla de fondo */
+.timeline-grid {
+    position: absolute;
+    top: 0;
+    left: 150px; /* Espacio para nombres de países */
+    height: 100%;
+    border-left: 1px solid #444;
+    pointer-events: none;
+}
+
+/* Encabezado de años */
+.timeline-years {
+    display: flex;
+    margin-left: 150px;
+    border-bottom: 1px solid #555;
+    background: #222;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 30px;
+    align-items: center;
+}
+
+.year-marker {
+    font-size: 0.7em;
+    color: #888;
+    border-left: 1px solid #444;
+    padding-left: 5px;
+    position: absolute;
+    height: 100vh; /* Línea vertical guía */
+    top: 0;
+    pointer-events: none; /* Para que no moleste el click */
+    opacity: 0.3;
+}
+
+/* Filas de Países */
+.country-row {
+    position: relative;
+    height: 50px; /* Altura de cada carril */
+    border-bottom: 1px solid #333;
+    margin-left: 150px; /* Dejar sitio al nombre */
+    transition: background 0.2s;
+}
+.country-row:hover { background: rgba(255,255,255,0.05); }
+
+/* Etiqueta del país (Sticky a la izquierda) */
+.row-label {
+    position: absolute;
+    left: -150px;
+    width: 150px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+    background: #1a1a1a;
+    border-right: 1px solid #555;
+    border-bottom: 1px solid #333;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8em;
+    color: var(--gold);
+    z-index: 10;
+}
+.row-flag { width: 20px; height: 15px; margin-right: 8px; border-radius: 2px; }
+
+/* Barras de Reinado */
+.reign-bar {
+    position: absolute;
+    height: 30px;
+    top: 10px;
+    background: var(--primary); /* Color por defecto */
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 0.7em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.2s, z-index 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.reign-bar:hover {
+    transform: scaleY(1.2) scaleX(1.02);
+    z-index: 100;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    border-color: var(--gold);
+}
+.reign-text { padding: 0 5px; text-shadow: 0 1px 2px black; font-family: 'Lato', sans-serif;}
+
+/* Notas al pie para reinados cortos */
+.footnote-symbol {
+    width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-weight: bold; background: #fff; color: #000; border-radius: 50%;
+}
+.footnotes-area {
+    padding: 20px;
+    color: #aaa;
+    font-size: 0.85em;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}    
+
+</style>
+</head>
+<body>
+
+<div class="overlay">
+    
+    <div class="hero">
+        <span class="brand-icon">♛</span>
+        <h1>Monarchia</h1>
+        <p class="subtitle">"La historia de Europa escrita a través de sus coronas."</p>
+    </div>
+
+    <div class="container">
+        <div class="country-grid">
+            
+            <a href="paises/espana.html" class="country-card">
+                <div class="card-bg-icon">⚔️</div>
+                <img src="https://flagcdn.com/w160/es.png" alt="Bandera España" class="flag-img">
+                <span class="country-name">España</span>
+            </a>
+
+            <a href="paises/uk.html" class="country-card">
+                <div class="card-bg-icon">🦁</div>
+                <img src="https://flagcdn.com/w160/gb.png" alt="Bandera UK" class="flag-img">
+                <span class="country-name">Reino Unido</span>
+            </a>
+
+            <a href="paises/francia.html" class="country-card">
+                <div class="card-bg-icon">⚜️</div>
+                <img src="https://flagcdn.com/w160/fr.png" alt="Bandera Francia" class="flag-img">
+                <span class="country-name">Francia</span>
+            </a>
+
+            <a href="paises/alemania.html" class="country-card">
+                <div class="card-bg-icon">🦅</div>
+                <img src="https://flagcdn.com/w160/de.png" alt="Bandera Alemania" class="flag-img">
+                <span class="country-name">Alemania</span>
+            </a>
+
+            <a href="paises/italia.html" class="country-card">
+                <div class="card-bg-icon">🏛️</div>
+                <img src="https://flagcdn.com/w160/it.png" alt="Bandera Italia" class="flag-img">
+                <span class="country-name">Italia</span>
+            </a>
+
+            <a href="paises/portugal.html" class="country-card">
+                <div class="card-bg-icon">⚓</div>
+                <img src="https://flagcdn.com/w160/pt.png" alt="Bandera Portugal" class="flag-img">
+                <span class="country-name">Portugal</span>
+            </a>
+
+            <a href="paises/austria.html" class="country-card">
+                <div class="card-bg-icon">🎼</div>
+                <img src="https://flagcdn.com/w160/at.png" alt="Bandera Austria" class="flag-img">
+                <span class="country-name">Austria</span>
+            </a>
+
+            <a href="paises/grecia.html" class="country-card">
+                <div class="card-bg-icon">🏺</div>
+                <img src="https://flagcdn.com/w160/gr.png" alt="Bandera Grecia" class="flag-img">
+                <span class="country-name">Grecia</span>
+            </a>
+
+            <a href="paises/paises_bajos.html" class="country-card">
+                <div class="card-bg-icon">🌷</div>
+                <img src="https://flagcdn.com/w160/nl.png" alt="Bandera Países Bajos" class="flag-img">
+                <span class="country-name">Países Bajos</span>
+            </a>
+
+            <a href="paises/belgica.html" class="country-card">
+                <div class="card-bg-icon">🍫</div>
+                <img src="https://flagcdn.com/w160/be.png" alt="Bandera Bélgica" class="flag-img">
+                <span class="country-name">Bélgica</span>
+            </a>
+
+            <a href="paises/dinamarca.html" class="country-card">
+                <div class="card-bg-icon">🇩🇰</div>
+                <img src="https://flagcdn.com/w160/dk.png" alt="Bandera Dinamarca" class="flag-img">
+                <span class="country-name">Dinamarca</span>
+            </a>
+
+            <a href="paises/suecia.html" class="country-card">
+                <div class="card-bg-icon">🇸🇪</div>
+                <img src="https://flagcdn.com/w160/se.png" alt="Bandera Suecia" class="flag-img">
+                <span class="country-name">Suecia</span>
+            </a>
+
+            <a href="paises/noruega.html" class="country-card">
+                <div class="card-bg-icon">🏔️</div>
+                <img src="https://flagcdn.com/w160/no.png" alt="Bandera Noruega" class="flag-img">
+                <span class="country-name">Noruega</span>
+            </a>
+
+            <a href="paises/monaco.html" class="country-card">
+                <div class="card-bg-icon">🎰</div>
+                <img src="https://flagcdn.com/w160/mc.png" alt="Bandera Mónaco" class="flag-img">
+                <span class="country-name">Mónaco</span>
+            </a>
+
+            <a href="paises/liechtenstein.html" class="country-card">
+                <div class="card-bg-icon">🏰</div>
+                <img src="https://flagcdn.com/w160/li.png" alt="Bandera Liechtenstein" class="flag-img">
+                <span class="country-name">Liechtenstein</span>
+            </a>
+
+        </div>
+    </div>
+<div class="timeline-section" id="comparative-timeline">
+        <div class="container">
+            <h2 style="text-align:center; font-family:'Cinzel'; color:var(--gold); margin-bottom:20px;">
+                Cronología Comparada (1000 - 2024)
+            </h2>
+            <p style="text-align:center; color:#888; font-size:0.9em; margin-bottom:20px;">
+                Desplázate horizontalmente para ver la historia. Los reinados cortos están marcados con números.
+            </p>
+            
+            <div class="timeline-wrapper" id="ganttChart">
+                </div>
+
+            <div class="footnotes-area" id="footnotes">
+                </div>
+        </div>
+    </div>
+    <footer>
+        Monarchia &copy; 2024 - Enciclopedia Histórica Interactiva<br>
+        <span style="font-size:0.8em; opacity:0.6">Banderas proporcionadas por FlagCDN</span>
+    </footer>
+
+</div>
+<script>
+    // --- CONFIGURACIÓN DEL CRONOGRAMA ---
+    const START_YEAR = 1450; // Empezamos en el Renacimiento para ver mejor el detalle
+    const END_YEAR = 2025;
+    const PIXELS_PER_YEAR = 5; // AUMENTADO: Más ancho para que quepan los nombres
+    const MIN_TEXT_WIDTH = 55; // Espacio mínimo para escribir el nombre
+
+    // --- DATOS DETALLADOS REY A REY ---
+    // Colores: 1:Rojo, 2:Azul, 3:Oro, 4:Verde, 5:Morado, 6:Negro, 9:Gris
+    const timelineData = {
+        "es": { name: "España", flag: "es", data: [
+            [1474, 1504, "Isabel I", 5],
+            [1479, 1516, "Fernando II", 5],
+            [1516, 1556, "Carlos I", 6],
+            [1556, 1598, "Felipe II", 6],
+            [1598, 1621, "Felipe III", 6],
+            [1621, 1665, "Felipe IV", 6],
+            [1665, 1700, "Carlos II", 6],
+            [1700, 1724, "Felipe V", 2],
+            [1724, 1724, "Luis I", 2],
+            [1724, 1746, "Felipe V", 2],
+            [1746, 1759, "Fernando VI", 2],
+            [1759, 1788, "Carlos III", 2],
+            [1788, 1808, "Carlos IV", 2],
+            [1808, 1813, "José I", 1],
+            [1813, 1833, "Fernando VII", 2],
+            [1833, 1868, "Isabel II", 2],
+            [1870, 1873, "Amadeo I", 4],
+            [1874, 1885, "Alfonso XII", 2],
+            [1886, 1931, "Alfonso XIII", 2],
+            [1931, 1975, "Rep/Dict", 9],
+            [1975, 2014, "Juan Carlos I", 2],
+            [2014, 2025, "Felipe VI", 2]
+        ]},
+        "uk": { name: "R. Unido", flag: "gb", data: [
+            [1485, 1509, "Enrique VII", 4],
+            [1509, 1547, "Enrique VIII", 4],
+            [1547, 1553, "Eduardo VI", 4],
+            [1553, 1558, "María I", 4],
+            [1558, 1603, "Isabel I", 4],
+            [1603, 1625, "Jacobo I", 2],
+            [1625, 1649, "Carlos I", 2],
+            [1649, 1660, "Cromwell", 9],
+            [1660, 1685, "Carlos II", 2],
+            [1685, 1688, "Jacobo II", 2],
+            [1689, 1702, "Guillermo III", 3],
+            [1702, 1714, "Ana", 2],
+            [1714, 1727, "Jorge I", 3],
+            [1727, 1760, "Jorge II", 3],
+            [1760, 1820, "Jorge III", 3],
+            [1820, 1830, "Jorge IV", 3],
+            [1830, 1837, "Guillermo IV", 3],
+            [1837, 1901, "Victoria", 3],
+            [1901, 1910, "Eduardo VII", 1],
+            [1910, 1936, "Jorge V", 1],
+            [1936, 1952, "Jorge VI", 1],
+            [1952, 2022, "Isabel II", 1],
+            [2022, 2025, "Carlos III", 1]
+        ]},
+        "fr": { name: "Francia", flag: "fr", data: [
+            [1515, 1547, "Francisco I", 2],
+            [1547, 1559, "Enrique II", 2],
+            [1589, 1610, "Enrique IV", 2],
+            [1610, 1643, "Luis XIII", 2],
+            [1643, 1715, "Luis XIV", 2],
+            [1715, 1774, "Luis XV", 2],
+            [1774, 1792, "Luis XVI", 2],
+            [1792, 1804, "I Rep", 9],
+            [1804, 1815, "Napoleón I", 1],
+            [1815, 1824, "Luis XVIII", 2],
+            [1824, 1830, "Carlos X", 2],
+            [1830, 1848, "L. Felipe I", 3],
+            [1852, 1870, "Napoleón III", 1],
+            [1870, 2025, "República", 9]
+        ]},
+        "de": { name: "Alemania", flag: "de", data: [
+            [1519, 1556, "Carlos V", 6],
+            [1556, 1564, "Fernando I", 6],
+            [1740, 1786, "Federico II (Prusia)", 6],
+            [1871, 1888, "Guillermo I", 1],
+            [1888, 1918, "Guillermo II", 1],
+            [1918, 1933, "Weimar", 9],
+            [1933, 1945, "III Reich", 6],
+            [1949, 2025, "RFA", 9]
+        ]},
+        "at": { name: "Austria", flag: "at", data: [
+            [1740, 1780, "M. Teresa", 6],
+            [1780, 1790, "José II", 6],
+            [1804, 1835, "Francisco I", 6],
+            [1835, 1848, "Fernando I", 6],
+            [1848, 1916, "F. José I", 6],
+            [1916, 1918, "Carlos I", 6],
+            [1918, 2025, "República", 9]
+        ]},
+        "ru": { name: "Rusia", flag: "ru", data: [
+            [1682, 1725, "Pedro I", 2],
+            [1762, 1796, "Catalina II", 2],
+            [1801, 1825, "Alejandro I", 2],
+            [1825, 1855, "Nicolás I", 2],
+            [1855, 1881, "Alejandro II", 2],
+            [1881, 1894, "Alejandro III", 2],
+            [1894, 1917, "Nicolás II", 2],
+            [1917, 2025, "URSS/Fed", 9]
+        ]},
+        "se": { name: "Suecia", flag: "se", data: [
+            [1523, 1560, "Gustavo I", 2],
+            [1611, 1632, "G. Adolfo", 2],
+            [1632, 1654, "Cristina", 2],
+            [1697, 1718, "Carlos XII", 3],
+            [1771, 1792, "Gustavo III", 3],
+            [1818, 1844, "Carlos XIV", 2],
+            [1872, 1907, "Oscar II", 2],
+            [1907, 1950, "Gustavo V", 2],
+            [1950, 1973, "G. Adolfo VI", 2],
+            [1973, 2025, "Carlos XVI", 2]
+        ]},
+        "nl": { name: "P. Bajos", flag: "nl", data: [
+            [1581, 1795, "República", 3],
+            [1815, 1840, "Guillermo I", 3],
+            [1840, 1849, "Guillermo II", 3],
+            [1849, 1890, "Guillermo III", 3],
+            [1890, 1948, "Guillermina", 3],
+            [1948, 1980, "Juliana", 3],
+            [1980, 2013, "Beatriz", 3],
+            [2013, 2025, "Guillermo A.", 3]
+        ]},
+        "be": { name: "Bélgica", flag: "be", data: [
+            [1831, 1865, "Leopoldo I", 6],
+            [1865, 1909, "Leopoldo II", 6],
+            [1909, 1934, "Alberto I", 6],
+            [1934, 1951, "Leopoldo III", 6],
+            [1951, 1993, "Balduino", 6],
+            [1993, 2013, "Alberto II", 6],
+            [2013, 2025, "Felipe", 6]
+        ]},
+        "dk": { name: "Dinamarca", flag: "dk", data: [
+            [1588, 1648, "Cristian IV", 3],
+            [1863, 1906, "Cristian IX", 2],
+            [1912, 1947, "Cristian X", 2],
+            [1947, 1972, "Federico IX", 2],
+            [1972, 2024, "Margarita II", 2],
+            [2024, 2025, "Federico X", 2]
+        ]},
+        "no": { name: "Noruega", flag: "no", data: [
+            [1814, 1905, "Unión Suecia", 2],
+            [1905, 1957, "Haakon VII", 4],
+            [1957, 1991, "Olav V", 4],
+            [1991, 2025, "Harald V", 4]
+        ]},
+        "gr": { name: "Grecia", flag: "gr", data: [
+            [1453, 1821, "Otomano", 9],
+            [1832, 1862, "Otón I", 2],
+            [1863, 1913, "Jorge I", 2],
+            [1913, 1917, "Constantino", 2],
+            [1935, 1947, "Jorge II", 2],
+            [1947, 1964, "Pablo", 2],
+            [1964, 1973, "Constantino II", 2],
+            [1974, 2025, "República", 9]
+        ]},
+        "mc": { name: "Mónaco", flag: "mc", data: [
+            [1297, 1793, "Grimaldi", 1],
+            [1856, 1889, "Carlos III", 1],
+            [1889, 1922, "Alberto I", 1],
+            [1922, 1949, "Luis II", 1],
+            [1949, 2005, "Rainiero III", 1],
+            [2005, 2025, "Alberto II", 1]
+        ]},
+        "li": { name: "Liecht.", flag: "li", data: [
+            [1608, 2025, "Príncipes", 3] // Simplificado por espacio
+        ]},
+        "pt": { name: "Portugal", flag: "pt", data: [
+            [1495, 1521, "Manuel I", 4],
+            [1578, 1580, "Crisis", 9],
+            [1580, 1640, "Unión Esp", 6],
+            [1640, 1656, "Juan IV", 1],
+            [1706, 1750, "Juan V", 1],
+            [1826, 1828, "Pedro IV", 1],
+            [1908, 1910, "Manuel II", 1],
+            [1910, 2025, "República", 9]
+        ]}
+    };
+
+    // Paleta de Colores
+    const colors = {
+        1: "linear-gradient(135deg, #c0392b, #e74c3c)", // Rojo
+        2: "linear-gradient(135deg, #2980b9, #3498db)", // Azul
+        3: "linear-gradient(135deg, #f39c12, #f1c40f)", // Oro
+        4: "linear-gradient(135deg, #27ae60, #2ecc71)", // Verde
+        5: "linear-gradient(135deg, #8e44ad, #9b59b6)", // Morado
+        6: "linear-gradient(135deg, #2c3e50, #34495e)", // Negro
+        9: "linear-gradient(135deg, #7f8c8d, #95a5a6)"  // Gris
+    };
+
+    function renderGantt() {
+        const wrapper = document.getElementById('ganttChart');
+        const footnotes = document.getElementById('footnotes');
+        let footnoteCount = 1;
+
+        wrapper.innerHTML = '';
+        footnotes.innerHTML = '';
+
+        const totalWidth = (END_YEAR - START_YEAR) * PIXELS_PER_YEAR;
+        
+        // Cabecera Años
+        const yearsHeader = document.createElement('div');
+        yearsHeader.className = 'timeline-years';
+        yearsHeader.style.width = `${totalWidth}px`;
+        
+        for (let y = START_YEAR; y <= END_YEAR; y += 25) {
+            const marker = document.createElement('div');
+            marker.className = 'year-marker';
+            marker.innerText = y;
+            marker.style.left = `${(y - START_YEAR) * PIXELS_PER_YEAR}px`;
+            yearsHeader.appendChild(marker); 
+            
+            const verticalLine = marker.cloneNode(true);
+            verticalLine.innerText = ""; 
+            wrapper.appendChild(verticalLine); 
+        }
+        wrapper.appendChild(yearsHeader);
+
+        // Filas
+        for (const [key, country] of Object.entries(timelineData)) {
+            const row = document.createElement('div');
+            row.className = 'country-row';
+            row.style.width = `${totalWidth}px`;
+
+            const label = document.createElement('div');
+            label.className = 'row-label';
+            label.innerHTML = `<img src="https://flagcdn.com/w40/${country.flag}.png" class="row-flag"> ${country.name}`;
+            row.appendChild(label);
+
+            country.data.forEach(reign => {
+                const [start, end, name, colorCode] = reign;
+                
+                const effStart = Math.max(start, START_YEAR);
+                const effEnd = Math.min(end, END_YEAR);
+                
+                if (effEnd <= effStart) return;
+
+                const duration = effEnd - effStart;
+                const width = duration * PIXELS_PER_YEAR;
+                const left = (effStart - START_YEAR) * PIXELS_PER_YEAR;
+
+                const bar = document.createElement('div');
+                bar.className = 'reign-bar';
+                bar.style.left = `${left}px`;
+                bar.style.width = `${width}px`;
+                bar.style.background = colors[colorCode] || colors[9];
+                bar.title = `${name} (${start}-${end})`;
+
+                if (width < MIN_TEXT_WIDTH) {
+                    bar.innerHTML = `<span class="footnote-symbol">${footnoteCount}</span>`;
+                    bar.style.borderRadius = "50%";
+                    bar.style.width = "20px";
+                    bar.style.height = "20px";
+                    bar.style.top = "15px";
+                    
+                    const note = document.createElement('div');
+                    note.innerHTML = `<strong style="color:var(--gold)">${footnoteCount}.</strong> ${name} <span style="opacity:0.7">(${country.name}, ${start}-${end})</span>`;
+                    footnotes.appendChild(note);
+                    footnoteCount++;
+                } else {
+                    bar.innerHTML = `<span class="reign-text">${name}</span>`;
+                }
+
+                row.appendChild(bar);
+            });
+
+            wrapper.appendChild(row);
+        }
+    }
+
+    renderGantt();
+</script>
+</body>
+</html>

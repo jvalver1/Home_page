@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de Austria - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn"><span>⬅</span> Menú</a>
+        <div class="app-title">AUSTRIA</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Austríaca</h1>
+            <p id="pageSub">Ducado, Imperio y Doble Monarquía</p>
+        </div>
+        <div class="timeline-container" id="timeline"></div>
+    </div>
+
+    <script>
+        const DB = [
+            // BABENBERG
+            { type: 'king', n: "Leopoldo III (El Santo)", y: "1095-1136", d: "Babenberg", c: "d-gold", i: "shield", born: "Gars", died: "63", succ: "Leopoldo IV", facts: {es:["Patrón de Austria", "Fundador de monasterios", "Canonizado en 1485"], en:["Patron Saint of Austria", "Founded monasteries", "Canonized 1485"]} },
+            { type: 'king', n: "Federico II (El Belicoso)", y: "1230-1246", d: "Babenberg", c: "d-gold", i: "shield", born: "Viena", died: "35", succ: "Interregno", facts: {es:["Último Babenberg", "Murió en batalla contra húngaros", "Sin herederos masculinos"], en:["Last Babenberg", "Died in battle vs Hungarians", "No male heirs"]} },
+
+            // HABSBURGO (Inicios)
+            { type: 'gap', title: {es:"Ascenso Habsburgo", en:"Rise of Habsburgs"}, desc: {es:"Rodolfo I toma el control (1278)", en:"Rudolf I takes control (1278)"}, y:"1278" },
+            { type: 'king', n: "Rodolfo I", y: "1278-1291", d: "Habsburgo", c: "d-black", i: "eagle", born: "Brisgovia", died: "73", succ: "Alberto I", facts: {es:["Primer Rey Habsburgo", "Venció a Ottokar II de Bohemia", "Estableció la base de poder en Viena"], en:["First Habsburg King", "Defeated Ottokar II", "Established power in Vienna"]} },
+            { type: 'king', n: "Maximiliano I", y: "1493-1519", d: "Habsburgo", c: "d-black", i: "eagle", born: "Viena", died: "59", succ: "Carlos V", facts: {es:["'Tu felix Austria nube' (Matrimonios estratégicos)", "Expandió el dominio a España y Borgoña"], en:["Strategic marriages", "Expanded rule to Spain/Burgundy"]} },
+            
+            // HABSBURGO (Siglo XVIII)
+            { type: 'king', n: "María Teresa", y: "1740-1780", d: "Habsburgo", c: "d-black", i: "eagle", born: "Viena", died: "63", succ: "José II", facts: {es:["Única mujer gobernante", "Guerra de Sucesión Austríaca", "Madre de María Antonieta", "Reformas educativas"], en:["Only female ruler", "War of Austrian Succession", "Mother of Marie Antoinette", "Education reforms"]} },
+            { type: 'king', n: "José II", y: "1765-1790", d: "Habsburgo", c: "d-black", i: "eagle", born: "Viena", died: "48", succ: "Leopoldo II", facts: {es:["Emperador Reformista", "Abolición de la servidumbre", "Patrón de Mozart"], en:["Reformist Emperor", "Abolished serfdom", "Patron of Mozart"]} },
+
+            // IMPERIO AUSTRÍACO
+            { type: 'gap', title: {es:"Imperio Austríaco", en:"Austrian Empire"}, desc: {es:"Proclamado en 1804 (Fin del Sacro Imperio)", en:"Proclaimed 1804 (End of HRE)"}, y:"1804" },
+            { type: 'king', n: "Francisco I", y: "1804-1835", d: "Habsburgo", c: "d-black", i: "eagle", born: "Florencia", died: "67", succ: "Fernando I", facts: {es:["Último Emperador Sacro Imperio", "Primer Emperador de Austria", "Congreso de Viena (Metternich)"], en:["Last HRE Emperor", "First Emperor of Austria", "Congress of Vienna"]} },
+            { type: 'king', n: "Fernando I", y: "1835-1848", d: "Habsburgo", c: "d-black", i: "eagle", born: "Viena", died: "82", succ: "Francisco José I", facts: {es:["El Benigno", "Problemas mentales / Epilepsia", "Abdicó en la revolución de 1848"], en:["The Benign", "Mental capacity issues", "Abdicated in 1848 revolution"]} },
+
+            // AUSTRO-HUNGARÍA
+            { type: 'king', n: "Francisco José I", y: "1848-1916", d: "Habsburgo", c: "d-black", i: "eagle", born: "Viena", died: "86", succ: "Carlos I", facts: {es:["Reinado de 68 años", "Creación de Austro-Hungría (1867)", "Tragedias familiares (Sisi, Rodolfo, F. Fernando)"], en:["68-year reign", "Austro-Hungarian Compromise", "Family tragedies (Sisi, Rudolf)"]} },
+            { type: 'king', n: "Carlos I", y: "1916-1918", d: "Habsburgo", c: "d-black", i: "eagle", born: "Persenbeug", died: "34", succ: "República", facts: {es:["Último Emperador", "Intentó la paz en la I Guerra Mundial", "Beato de la Iglesia Católica"], en:["Last Emperor", "Attempted peace in WWI", "Beatified by Catholic Church"]} },
+
+            // REPÚBLICA
+            { type: 'gap', title: {es:"República de Austria", en:"Republic of Austria"}, desc: {es:"1918-Presente", en:"1918-Present"}, y:"1918-Pte" }
+        ];
+
+        function getSVG(t) {
+            const c = {r:"#e74c3c", w:"#fff", k:"#2c3e50"};
+            let p = '';
+            // Escudo Babenberg/Austria: Rojo-Blanco-Rojo
+            if(t==='shield') p=`<path d="M20 10 h60 v50 a30 30 0 0 1 -60 0 z" fill="${c.r}" stroke="${c.k}"/><rect x="20" y="30" width="60" height="15" fill="${c.w}"/>`;
+            // Águila bicéfala (simplificada)
+            if(t==='eagle') p=`<path d="M20 10 h60 v50 a30 30 0 0 1 -60 0 z" fill="#f1c40f" stroke="${c.k}"/><path d="M30 25 h40 v25 h-40 z" fill="${c.k}"/>`;
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+            const labels = { es: { born:"Nace", died:"Muere", succ:"Sucesor" }, en: { born:"Born", died:"Died", succ:"Successor" } }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                if (item.type === 'gap') {
+                    card.className = 'gap-card';
+                    card.innerHTML = `<div class="gap-title">${item.title[lang]}</div><div style="font-weight:bold; font-size:1.2em; color:#e74c3c;">${item.y}</div>${getSVG('gap')}<div class="gap-desc" style="margin-top:10px">${item.desc[lang]}</div>`;
+                } else {
+                    card.className = `monarch-card ${item.c}`;
+                    const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                    card.innerHTML = `<div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div><div class="card-header"><div class="monarch-name">${item.n}</div>${getSVG(item.i)}</div><div class="years">${item.y}</div><div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div><div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div><div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div><div class="events-box"><ul class="events-list">${facts}</ul></div>`;
+                }
+                container.appendChild(card);
+            });
+        }
+        renderTimeline();
+    </script>
+</body>
+</html>

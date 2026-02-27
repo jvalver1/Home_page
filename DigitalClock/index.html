@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbitron Fixed Grid Clock</title>
+    
+    <style>
+    /* DEFINING THE LOCAL FONT */
+    @font-face {
+        font-family: 'Orbitron';
+        /* This path points to the folder you just made */
+        src: url('fonts/Orbitron-Bold.ttf') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+    }
+        body {
+            background-color: #000000;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            color: #00f3ff;
+            overflow: hidden;
+        }
+
+        /* --- THE CLOCK GRID --- */
+        .clock-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            /* Big Font Size */
+            font-size: 8rem; 
+            font-weight: 700;
+            
+            /* Glow Effect */
+            text-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+        }
+
+        /* The Box for numbers */
+        .digit {
+            display: inline-block;
+            /* WIDTH: Controls the "cage" size. 
+               0.8em gives enough room so even wide numbers don't touch.
+            */
+            width: 0.8em; 
+            text-align: center;
+            
+            /* MARGIN: Adds extra breathing room between every digit */
+            margin: 0 0.05em; 
+        }
+
+        /* The Box for colons (:) */
+        .colon {
+            display: inline-block;
+            width: 0.4em;
+            text-align: center;
+            padding-bottom: 0.15em; /* Visual alignment */
+            margin: 0 0.1em; /* Extra space around colons */
+        }
+
+        /* --- THE DATE --- */
+        .date {
+            margin-top: 30px;
+            font-size: 2rem;
+            font-weight: 500;
+            opacity: 0.8;
+            letter-spacing: 3px; /* Widen the date slightly to match clock width */
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+        }
+
+        /* --- RESPONSIVE SCALING --- */
+        @media (max-width: 900px) {
+            .clock-container {
+                font-size: 13vw; /* Slightly smaller to accommodate spacing */
+            }
+            .date {
+                font-size: 3.5vw;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock-container">
+        <span id="h1" class="digit">0</span>
+        <span id="h2" class="digit">0</span>
+        
+        <span class="colon">:</span>
+        
+        <span id="m1" class="digit">0</span>
+        <span id="m2" class="digit">0</span>
+        
+        <span class="colon">:</span>
+        
+        <span id="s1" class="digit">0</span>
+        <span id="s2" class="digit">0</span>
+    </div>
+
+    <div id="date" class="date">Loading...</div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+
+            // 1. Get raw numbers
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let s = now.getSeconds();
+
+            // 2. Convert to strings with leading zeros
+            let hStr = String(h).padStart(2, '0');
+            let mStr = String(m).padStart(2, '0');
+            let sStr = String(s).padStart(2, '0');
+
+            // 3. Update DOM
+            document.getElementById('h1').textContent = hStr[0];
+            document.getElementById('h2').textContent = hStr[1];
+
+            document.getElementById('m1').textContent = mStr[0];
+            document.getElementById('m2').textContent = mStr[1];
+
+            document.getElementById('s1').textContent = sStr[0];
+            document.getElementById('s2').textContent = sStr[1];
+
+            // 4. Update Date
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('date').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+
+</body>
+</html>

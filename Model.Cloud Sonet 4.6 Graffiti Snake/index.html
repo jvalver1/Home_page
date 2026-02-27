@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SNAKE GRAFFITI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Permanent+Marker&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --neon-green:  #39ff14;
+      --neon-pink:   #ff006e;
+      --neon-yellow: #ffe600;
+      --neon-cyan:   #00f5ff;
+      --neon-orange: #ff6b00;
+      --neon-purple: #c400ff;
+      --dark-bg:     #0a0a0f;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--dark-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Permanent Marker', cursive;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ===== GRAFFITI BACKGROUND DECORATION ===== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 600px 400px at 10% 20%, rgba(196,0,255,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 300px at 90% 80%, rgba(0,245,255,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(57,255,20,0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .graffiti-bg {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .tag {
+      position: absolute;
+      font-family: 'Permanent Marker', cursive;
+      opacity: 0.06;
+      transform-origin: center;
+      user-select: none;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .title {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      letter-spacing: 6px;
+      line-height: 1;
+      background: linear-gradient(90deg,
+        var(--neon-pink) 0%,
+        var(--neon-yellow) 25%,
+        var(--neon-green) 50%,
+        var(--neon-cyan) 75%,
+        var(--neon-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 12px rgba(57,255,20,0.6))
+              drop-shadow(0 0 30px rgba(255,0,110,0.5));
+      animation: rainbow-shift 3s linear infinite;
+    }
+    @keyframes rainbow-shift {
+      0%   { filter: drop-shadow(0 0 12px #39ff14aa) drop-shadow(0 0 30px #ff006eaa); }
+      33%  { filter: drop-shadow(0 0 12px #00f5ffaa) drop-shadow(0 0 30px #c400ffaa); }
+      66%  { filter: drop-shadow(0 0 12px #ffe600aa) drop-shadow(0 0 30px #ff6b00aa); }
+      100% { filter: drop-shadow(0 0 12px #39ff14aa) drop-shadow(0 0 30px #ff006eaa); }
+    }
+
+    .subtitle {
+      font-family: 'Boogaloo', cursive;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.9rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ===== SCORE BOARD ===== */
+    .scoreboard {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 40px;
+      margin-bottom: 14px;
+    }
+    .score-box {
+      text-align: center;
+    }
+    .score-label {
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+    }
+    .score-value {
+      font-size: 2rem;
+      line-height: 1;
+    }
+    #score-display  { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
+    #hiscore-display { color: var(--neon-pink);   text-shadow: 0 0 10px var(--neon-pink);   }
+
+    /* ===== GAME CONTAINER & CHARACTERS ===== */
+    .game-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      width: 100%;
+      max-width: 1600px;
+      position: relative;
+      z-index: 2;
+      padding: 0 20px;
+    }
+
+    .character {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 480px;
+      filter: drop-shadow(0 0 15px rgba(0,0,0,0.8));
+      animation: float-char 4s ease-in-out infinite;
+    }
+
+    .character img {
+      width: 100%;
+      height: auto;
+      max-height: 488px;
+      object-fit: contain;
+    }
+
+    .left-char {
+      animation-delay: 0s;
+    }
+
+    .right-char {
+      animation-delay: 2s;
+    }
+
+    @keyframes float-char {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    @media (max-width: 1100px) {
+      .character {
+        display: none;
+      }
+    }
+
+    /* ===== CANVAS WRAPPER ===== */
+    .canvas-wrapper {
+      position: relative;
+      z-index: 2;
+    }
+    .canvas-border {
+      padding: 4px;
+      background: linear-gradient(135deg,
+        var(--neon-purple),
+        var(--neon-pink),
+        var(--neon-yellow),
+        var(--neon-green),
+        var(--neon-cyan));
+      border-radius: 8px;
+      animation: border-spin 4s linear infinite;
+      background-size: 300% 300%;
+    }
+    @keyframes border-spin {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    #gameCanvas {
+      display: block;
+      border-radius: 4px;
+      background: #080810;
+      image-rendering: pixelated;
+    }
+
+    /* ===== OVERLAY (start / game-over) ===== */
+    #overlay {
+      position: absolute;
+      inset: 4px;
+      border-radius: 4px;
+      background: rgba(8,8,16,0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      backdrop-filter: blur(4px);
+      z-index: 10;
+    }
+    #overlay.hidden { display: none; }
+
+    .overlay-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 16px var(--neon-pink));
+      text-align: center;
+      line-height: 1.1;
+    }
+    .overlay-sub {
+      font-family: 'Boogaloo', cursive;
+      color: rgba(255,255,255,0.55);
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .play-btn {
+      padding: 14px 40px;
+      font-family: 'Permanent Marker', cursive;
+      font-size: 1.4rem;
+      letter-spacing: 3px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+      color: #fff;
+      box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-purple);
+      transition: transform 0.15s, box-shadow 0.15s;
+      text-transform: uppercase;
+    }
+    .play-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 30px var(--neon-pink), 0 0 60px var(--neon-purple);
+    }
+    .play-btn:active { transform: scale(0.97); }
+
+    /* ===== CONTROLS HINT ===== */
+    .controls-hint {
+      position: relative;
+      z-index: 2;
+      margin-top: 12px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+    }
+    .key {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* ===== PARTICLE CANVAS ===== */
+    #particleCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background graffiti tags -->
+<div class="graffiti-bg" id="graffBg"></div>
+
+<!-- Particle layer -->
+<canvas id="particleCanvas"></canvas>
+
+<div class="header">
+  <div class="title">SNAK3</div>
+  <div class="subtitle">Urban Edition</div>
+</div>
+
+<div class="scoreboard">
+  <div class="score-box">
+    <div class="score-label">Score</div>
+    <div class="score-value" id="score-display">0</div>
+  </div>
+  <div class="score-box">
+    <div class="score-label">Best</div>
+    <div class="score-value" id="hiscore-display">0</div>
+  </div>
+</div>
+
+<div class="game-container">
+  <div class="character left-char">
+    <img src="chico.png" alt="Grafitero chico estilo cómic realista" style="border-radius: 10px; border: 3px solid var(--neon-green); box-shadow: 0 0 15px var(--neon-green);">
+  </div>
+
+  <div class="canvas-wrapper">
+    <div class="canvas-border">
+      <canvas id="gameCanvas" width="480" height="480"></canvas>
+      <div id="overlay">
+        <div class="overlay-title" id="overlay-title">SNAK3<br>GRAFFITI</div>
+        <div class="overlay-sub" id="overlay-sub">Pinta las calles. Sobrevive.</div>
+        <button class="play-btn" id="playBtn">▶ JUGAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="character right-char">
+    <img src="chica.png" alt="Grafitera chica estilo cómic realista" style="border-radius: 10px; border: 3px solid var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink);">
+  </div>
+</div>
+
+<div class="controls-hint">
+  <span class="key">↑</span>
+  <span class="key">↓</span>
+  <span class="key">←</span>
+  <span class="key">→</span>
+  <span>para mover</span>
+  <span style="margin: 0 8px; color: rgba(255,255,255,0.1);">|</span>
+  <span class="key">ESPACIO</span>
+  <span>para empezar</span>
+</div>
+
+<script>
+/* ============================================================
+   AUDIO SYSTEM (Web Audio API)
+   ============================================================ */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playExplosionSound() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  
+  // Noise generation for explosion
+  const bufferSize = audioCtx.sampleRate * 0.5; // 0.5 seconds
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  
+  const noiseSource = audioCtx.createBufferSource();
+  noiseSource.buffer = buffer;
+  
+  // Filter to make it sound like a low explosion
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+  
+  // Volume envelope
+  gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+  
+  noiseSource.connect(filter);
+  filter.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  
+  noiseSource.start();
+}
+
+function playEatSound() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+  
+  gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+  
+  osc.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.1);
+}
+
+/* ============================================================
+   GRAFFITI BACKGROUND TAGS
+   ============================================================ */
+(function buildTags() {
+  const words = ['SNAKE','WILD','THROW-UP','BOMB','STYLE','PIECE',
+                 'GRAFFITI','FRESH','DOPE','SNAK3','URBAN','CREW',
+                 'WILDSTYLE','OUTLAW','KING','LEGEND'];
+  const colors = ['#39ff14','#ff006e','#ffe600','#00f5ff','#c400ff','#ff6b00'];
+  const bg = document.getElementById('graffBg');
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('div');
+    el.className = 'tag';
+    el.textContent = words[Math.floor(Math.random() * words.length)];
+    el.style.cssText = `
+      left:${Math.random()*95}%;
+      top:${Math.random()*95}%;
+      font-size:${Math.floor(Math.random()*80+30)}px;
+      color:${colors[Math.floor(Math.random()*colors.length)]};
+      transform:rotate(${(Math.random()-0.5)*60}deg);
+    `;
+    bg.appendChild(el);
+  }
+})();
+
+/* ============================================================
+   PARTICLE SYSTEM
+   ============================================================ */
+const pCanvas = document.getElementById('particleCanvas');
+const pCtx    = pCanvas.getContext('2d');
+pCanvas.width  = window.innerWidth;
+pCanvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  pCanvas.width  = window.innerWidth;
+  pCanvas.height = window.innerHeight;
+});
+
+const PALETTE = ['#39ff14','#ff006e','#ffe600','#00f5ff','#c400ff','#ff6b00'];
+let particles = [];
+
+function spawnParticles(x, y, count = 18) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+    const speed = 2 + Math.random() * 5;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1,
+      decay: 0.02 + Math.random() * 0.03,
+      size: 3 + Math.random() * 5,
+      color: PALETTE[Math.floor(Math.random() * PALETTE.length)]
+    });
+  }
+}
+
+function updateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  particles = particles.filter(p => p.life > 0);
+  for (const p of particles) {
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.vy += 0.18;      // gravity
+    p.life -= p.decay;
+    pCtx.save();
+    pCtx.globalAlpha = Math.max(0, p.life);
+    pCtx.shadowColor  = p.color;
+    pCtx.shadowBlur   = 10;
+    pCtx.fillStyle    = p.color;
+    pCtx.beginPath();
+    pCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    pCtx.fill();
+    pCtx.restore();
+  }
+}
+
+/* ============================================================
+   SNAKE GAME
+   ============================================================ */
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+const COLS    = 24;
+const ROWS    = 24;
+const CELL    = canvas.width / COLS;   // 20 px
+
+let snake, dir, nextDir, food, score, hiScore, running, gameLoop;
+hiScore = parseInt(localStorage.getItem('snakeHi') || '0');
+document.getElementById('hiscore-display').textContent = hiScore;
+
+// ---- HUE CYCLING for snake gradient ----
+let hueOffset = 0;
+
+function initGame() {
+  snake   = [{ x: 12, y: 12 }, { x: 11, y: 12 }, { x: 10, y: 12 }];
+  dir     = { x: 1, y: 0 };
+  nextDir = { x: 1, y: 0 };
+  score   = 0;
+  document.getElementById('score-display').textContent = '0';
+  placeFood();
+}
+
+function placeFood() {
+  let pos;
+  do {
+    pos = {
+      x: Math.floor(Math.random() * COLS),
+      y: Math.floor(Math.random() * ROWS)
+    };
+  } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+  food = pos;
+}
+
+/* ---- INPUT ---- */
+document.addEventListener('keydown', e => {
+  // Start game with Space if not running
+  if (e.code === 'Space' && !running) {
+    e.preventDefault();
+    startGame();
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowUp':    if (dir.y === 0) nextDir = { x:  0, y: -1 }; e.preventDefault(); break;
+    case 'ArrowDown':  if (dir.y === 0) nextDir = { x:  0, y:  1 }; e.preventDefault(); break;
+    case 'ArrowLeft':  if (dir.x === 0) nextDir = { x: -1, y:  0 }; e.preventDefault(); break;
+    case 'ArrowRight': if (dir.x === 0) nextDir = { x:  1, y:  0 }; e.preventDefault(); break;
+  }
+});
+
+/* ---- GAME TICK ---- */
+function tick() {
+  dir = nextDir;
+  const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+  // Wall collision
+  if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
+    return gameOver();
+  }
+  // Self collision
+  if (snake.some(s => s.x === head.x && s.y === head.y)) {
+    return gameOver();
+  }
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    playEatSound();
+    document.getElementById('score-display').textContent = score;
+    if (score > hiScore) {
+      hiScore = score;
+      localStorage.setItem('snakeHi', hiScore);
+      document.getElementById('hiscore-display').textContent = hiScore;
+    }
+    // Particles at food position (canvas-relative → page-relative)
+    const rect = canvas.getBoundingClientRect();
+    const px = rect.left + (food.x + 0.5) * CELL;
+    const py = rect.top  + (food.y + 0.5) * CELL;
+    spawnParticles(px, py, 28);
+    placeFood();
+  } else {
+    snake.pop();
+  }
+
+  draw();
+  hueOffset = (hueOffset + 4) % 360;
+}
+
+/* ---- DRAW ---- */
+function draw() {
+  // Clear with slight trail effect
+  ctx.fillStyle = 'rgba(8,8,16,0.92)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawGrid();
+  drawFood();
+  drawSnake();
+}
+
+function drawGrid() {
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth   = 0.5;
+  for (let c = 0; c <= COLS; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * CELL, 0);
+    ctx.lineTo(c * CELL, canvas.height);
+    ctx.stroke();
+  }
+  for (let r = 0; r <= ROWS; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * CELL);
+    ctx.lineTo(canvas.width, r * CELL);
+    ctx.stroke();
+  }
+}
+
+function drawFood() {
+  const cx    = food.x * CELL + CELL / 2;
+  const cy    = food.y * CELL + CELL / 2;
+  const s     = CELL / 20;                        // scale factor (1 at CELL=20)
+  const pulse = 0.55 + 0.45 * Math.sin(Date.now() / 220);
+  const hue   = (hueOffset * 3) % 360;
+
+  const colMain  = `hsl(${hue},100%,55%)`;
+  const colLight = `hsl(${hue},100%,78%)`;
+  const colDark  = `hsl(${hue},70%,28%)`;
+
+  // ---- can proportions ----
+  const capH   = 2.5 * s,  capW   = 8.5 * s;
+  const neckH  = 2.5 * s,  neckW  = 4.5 * s;
+  const bodyH  = 11  * s,  bodyW  = 8   * s;
+  const totalH = capH + neckH + bodyH;
+  const top    = cy - totalH / 2 - 1 * s;
+
+  ctx.save();
+  ctx.shadowColor = colMain;
+  ctx.shadowBlur  = 12 * pulse;
+
+  // --- cap (dark rounded top) ---
+  ctx.fillStyle = colDark;
+  roundRect(ctx, cx - capW / 2, top, capW, capH, 2 * s);
+  ctx.fill();
+
+  // --- neck ---
+  ctx.fillStyle = colDark;
+  ctx.fillRect(cx - neckW / 2, top + capH, neckW, neckH);
+
+  // --- body with vertical gradient ---
+  const grad = ctx.createLinearGradient(cx - bodyW / 2, 0, cx + bodyW / 2, 0);
+  grad.addColorStop(0,    colDark);
+  grad.addColorStop(0.28, colLight);
+  grad.addColorStop(0.6,  colMain);
+  grad.addColorStop(1,    colDark);
+  ctx.fillStyle = grad;
+  roundRect(ctx, cx - bodyW / 2, top + capH + neckH, bodyW, bodyH, 3 * s);
+  ctx.fill();
+
+  // --- label band ---
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  const bandTop = top + capH + neckH + bodyH * 0.28;
+  ctx.fillRect(cx - bodyW / 2 + s, bandTop, bodyW - 2 * s, bodyH * 0.38);
+
+  // --- letter on label (can colour initial) ---
+  ctx.save();
+  ctx.shadowBlur  = 0;
+  ctx.fillStyle   = 'rgba(255,255,255,0.7)';
+  ctx.font        = `bold ${Math.round(7 * s)}px "Permanent Marker", cursive`;
+  ctx.textAlign   = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('S', cx, bandTop + bodyH * 0.19);
+  ctx.restore();
+
+  // --- nozzle / actuator button ---
+  const nozzleX = cx + capW * 0.18;
+  const nozzleY = top - 4 * s;
+  ctx.fillStyle  = '#ddd';
+  ctx.shadowBlur = 0;
+  roundRect(ctx, nozzleX - 2.5 * s, nozzleY, 5 * s, 4 * s, 1.5 * s);
+  ctx.fill();
+
+  // --- animated spray dots fanning upward from nozzle ---
+  const sprayCount = 9;
+  const now        = Date.now() / 350;
+  for (let i = 0; i < sprayCount; i++) {
+    const frac  = ((now + i / sprayCount) % 1);      // 0→1 lifecycle per dot
+    const angle = -Math.PI / 2 + (i - (sprayCount - 1) / 2) * 0.21;
+    const dist  = frac * 11 * s;
+    const sx    = nozzleX + Math.cos(angle) * dist;
+    const sy    = nozzleY + Math.sin(angle) * dist;
+    const dAlpha = (1 - frac) * 0.95;
+    const dR     = (1.8 - frac * 1.2) * s;
+    const dHue   = (hue + i * 18) % 360;
+
+    ctx.save();
+    ctx.globalAlpha = dAlpha;
+    ctx.shadowColor = `hsl(${dHue},100%,70%)`;
+    ctx.shadowBlur  = 5;
+    ctx.fillStyle   = `hsl(${dHue},100%,72%)`;
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.max(0.5, dR), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function drawSnake() {
+  const len = snake.length;
+  for (let i = len - 1; i >= 0; i--) {
+    const { x, y } = snake[i];
+    const t   = i / len;                         // 0 = head, 1 = tail
+    const hue = (hueOffset + i * 10) % 360;
+    const color = `hsl(${hue},100%,55%)`;
+    const alpha = 0.35 + 0.65 * (1 - t);
+
+    const pad  = i === 0 ? 1 : 2;
+    const bx   = x * CELL + pad;
+    const by   = y * CELL + pad;
+    const bw   = CELL - pad * 2;
+    const bh   = CELL - pad * 2;
+    const brad = i === 0 ? 6 : 4;
+
+    ctx.save();
+    ctx.globalAlpha  = alpha;
+    ctx.shadowColor  = color;
+    ctx.shadowBlur   = i === 0 ? 18 : 10;
+    ctx.fillStyle    = color;
+    roundRect(ctx, bx, by, bw, bh, brad);
+    ctx.fill();
+
+    // Highlight on head
+    if (i === 0) {
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle   = 'rgba(255,255,255,0.45)';
+      roundRect(ctx, bx + 2, by + 2, bw * 0.45, bh * 0.3, 3);
+      ctx.fill();
+
+      // Eyes
+      ctx.globalAlpha = 1;
+      ctx.fillStyle   = '#000';
+      ctx.shadowBlur  = 0;
+      drawEyes(x, y);
+    }
+
+    ctx.restore();
+  }
+}
+
+function drawEyes(hx, hy) {
+  const cx = hx * CELL + CELL / 2;
+  const cy = hy * CELL + CELL / 2;
+  const eyeR = 2.2;
+  const off   = 4;
+
+  let ex1, ey1, ex2, ey2;
+  if      (dir.x ===  1) { ex1 = cx+4; ey1 = cy-off; ex2 = cx+4; ey2 = cy+off; }
+  else if (dir.x === -1) { ex1 = cx-4; ey1 = cy-off; ex2 = cx-4; ey2 = cy+off; }
+  else if (dir.y === -1) { ex1 = cx-off; ey1 = cy-4; ex2 = cx+off; ey2 = cy-4; }
+  else                   { ex1 = cx-off; ey1 = cy+4; ex2 = cx+off; ey2 = cy+4; }
+
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(ex1, ey1, eyeR, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ex2, ey2, eyeR, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(ex1+0.6, ey1+0.6, eyeR*0.55, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ex2+0.6, ey2+0.6, eyeR*0.55, 0, Math.PI*2); ctx.fill();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y,     x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h,     x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y,         x + r, y);
+  ctx.closePath();
+}
+
+/* ---- GAME OVER ---- */
+function gameOver() {
+  clearInterval(gameLoop);
+  running = false;
+  playExplosionSound();
+
+  // Explosion effect at each segment
+  const rect = canvas.getBoundingClientRect();
+  for (const seg of snake) {
+    const px = rect.left + (seg.x + 0.5) * CELL;
+    const py = rect.top  + (seg.y + 0.5) * CELL;
+    spawnParticles(px, py, 6);
+  }
+
+  const overlay = document.getElementById('overlay');
+  document.getElementById('overlay-title').textContent = 'GAME OVER';
+  document.getElementById('overlay-sub').textContent   = `Puntuación: ${score}`;
+  document.getElementById('playBtn').textContent = '↺ DE NUEVO';
+  overlay.classList.remove('hidden');
+}
+
+/* ---- START / RESTART ---- */
+function startGame() {
+  document.getElementById('overlay').classList.add('hidden');
+  initGame();
+  running  = true;
+  const speed = 130;  // ms per tick
+  clearInterval(gameLoop);
+  gameLoop = setInterval(tick, speed);
+}
+
+document.getElementById('playBtn').addEventListener('click', startGame);
+
+/* ============================================================
+   ANIMATION LOOP (particles + food pulse)
+   ============================================================ */
+function animLoop() {
+  updateParticles();
+  if (!running) {
+    // Redraw canvas idle (food pulse on overlay screen)
+  }
+  requestAnimationFrame(animLoop);
+}
+animLoop();
+</script>
+</body>
+</html>

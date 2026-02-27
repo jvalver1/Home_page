@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyes de Suecia - Monarchia</title>
+    <link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+    <div class="top-bar">
+        <a href="../index.html" class="nav-btn"><span>⬅</span> Menú</a>
+        <div class="app-title">SUECIA</div>
+        <select id="langSelect" onchange="renderTimeline()" style="padding:5px; border-radius:5px;">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1 id="pageTitle">Monarquía Sueca</h1>
+            <p id="pageSub">De los Vasa a los Bernadotte</p>
+        </div>
+        <div class="timeline-container" id="timeline"></div>
+    </div>
+
+    <script>
+        const DB = [
+            // VASA
+            { type: 'king', n: "Gustavo I Vasa", y: "1523-1560", d: "Vasa", c: "d-blue", i: "crown", born: "Uppland", died: "64", succ: "Erico XIV", facts: {es:["Padre de la Suecia moderna", "Rompió la Unión de Kalmar", "Introdujo el luteranismo"], en:["Father of modern Sweden", "Broke Kalmar Union", "Introduced Lutheranism"]} },
+            { type: 'king', n: "Gustavo II Adolfo", y: "1611-1632", d: "Vasa", c: "d-blue", i: "crown", born: "Estocolmo", died: "37", succ: "Cristina", facts: {es:["El León del Norte", "Gran estratega militar (Guerra 30 Años)", "Murió en la batalla de Lützen"], en:["The Lion of the North", "Military strategist", "Died at Lützen"]} },
+            { type: 'king', n: "Cristina", y: "1632-1654", d: "Vasa", c: "d-blue", i: "crown", born: "Estocolmo", died: "62", succ: "Carlos X", facts: {es:["La reina filósofa", "Mecenas de las artes (Descartes)", "Abdicó y se convirtió al catolicismo"], en:["The Philosopher Queen", "Patron of arts", "Abdicated and converted to Catholicism"]} },
+
+            // PALATINADO / HESSE / HOLSTEIN
+            { type: 'king', n: "Carlos XII", y: "1697-1718", d: "Palatinado", c: "d-gold", i: "crown", born: "Estocolmo", died: "36", succ: "Ulrica Leonor", facts: {es:["Gran Guerra del Norte", "Rey guerrero contra Rusia (Pedro el Grande)", "Murió en batalla en Noruega"], en:["Great Northern War", "Warrior king vs Russia", "Died in battle"]} },
+            { type: 'king', n: "Gustavo III", y: "1771-1792", d: "Holstein", c: "d-gold", i: "crown", born: "Estocolmo", died: "46", succ: "Gustavo IV", facts: {es:["Déspota ilustrado", "Fundó la Academia Sueca", "Asesinado en un baile de máscaras"], en:["Enlightened despot", "Founded Swedish Academy", "Assassinated at masquerade ball"]} },
+
+            // BERNADOTTE
+            { type: 'king', n: "Carlos XIV Juan", y: "1818-1844", d: "Bernadotte", c: "d-blue", i: "crown", born: "Pau (Francia)", died: "81", succ: "Oscar I", facts: {es:["Mariscal francés de Napoleón (Jean Bernadotte)", "Elegido heredero al trono", "Unión con Noruega"], en:["French Marshal of Napoleon", "Elected heir", "Union with Norway"]} },
+            { type: 'king', n: "Oscar II", y: "1872-1907", d: "Bernadotte", c: "d-blue", i: "crown", born: "Estocolmo", died: "78", succ: "Gustavo V", facts: {es:["Último rey de Suecia y Noruega", "Disolución pacífica de la unión (1905)", "Gran diplomático"], en:["Last king of Sweden & Norway", "Dissolution of union", "Great diplomat"]} },
+            { type: 'king', n: "Gustavo VI Adolfo", y: "1950-1973", d: "Bernadotte", c: "d-blue", i: "crown", born: "Estocolmo", died: "90", succ: "Carlos XVI", facts: {es:["Arqueólogo aficionado", "Intelectual y demócrata", "Participó en excavaciones en Italia"], en:["Amateur archaeologist", "Intellectual", "Excavations in Italy"]} },
+            { type: 'king', n: "Carlos XVI Gustavo", y: "1973-Pte", d: "Bernadotte", c: "d-blue", i: "crown", born: "Solna", died: "-", succ: "Victoria", facts: {es:["Rey actual", "Reformó la constitución (monarca ceremonial)", "Cambió la sucesión a primogenitura absoluta"], en:["Current King", "Constitutional reform", "Absolute primogeniture"]} }
+        ];
+
+        function getSVG(t) {
+            const c = {b:"#006aa7", y:"#fecc00", w:"#fff"};
+            let p = '';
+            // Tres Coronas (Tre Kronor)
+            if(t==='crown') p=`<path d="M20 10 h60 v50 a30 30 0 0 1 -60 0 z" fill="${c.b}" stroke="${c.y}"/><circle cx="35" cy="30" r="8" fill="${c.y}"/><circle cx="65" cy="30" r="8" fill="${c.y}"/><circle cx="50" cy="55" r="8" fill="${c.y}"/>`;
+            if(t==='gap') p=`<circle cx="50" cy="50" r="25" fill="#ccc"/><text x="50" y="60" font-size="30" text-anchor="middle" fill="white">?</text>`;
+            return `<svg viewBox="0 0 100 100" style="width:40px;height:40px;">${p}</svg>`;
+        }
+
+        function renderTimeline() {
+            const lang = document.getElementById('langSelect').value;
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+            const labels = { es: { born:"Nace", died:"Muere", succ:"Sucesor" }, en: { born:"Born", died:"Died", succ:"Successor" } }[lang];
+
+            DB.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `monarch-card ${item.c}`;
+                const facts = item.facts[lang].map(f => `<li>${f}</li>`).join('');
+                card.innerHTML = `<div class="dynasty-badge ${item.c.replace('d-', 'bg-')}">${item.d}</div><div class="card-header"><div class="monarch-name">${item.n}</div>${getSVG(item.i)}</div><div class="years">${item.y}</div><div class="detail-row"><span class="label">${labels.born}:</span> ${item.born}</div><div class="detail-row"><span class="label">${labels.died}:</span> ${item.died}</div><div class="detail-row"><span class="label">${labels.succ}:</span> ${item.succ}</div><div class="events-box"><ul class="events-list">${facts}</ul></div>`;
+                container.appendChild(card);
+            });
+        }
+        renderTimeline();
+    </script>
+</body>
+</html>

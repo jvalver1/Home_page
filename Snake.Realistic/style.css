@@ -1,0 +1,442 @@
+/* ===== JUNGLE SNAKE GAME - REALISTIC STYLING ===== */
+
+/* Color Palette - Jungle Theme */
+:root {
+  /* Greens - Jungle Foliage */
+  --jungle-dark: #1a3a1a;
+  --jungle-primary: #2d5016;
+  --jungle-medium: #4a7c2c;
+  --jungle-light: #6b9d3a;
+  --jungle-bright: #8bc34a;
+
+  /* Browns - Earth & Wood */
+  --earth-dark: #3e2723;
+  --earth-medium: #5c4033;
+  --earth-light: #8b6f47;
+
+  /* Accent Colors */
+  --accent-red: #c1440e;
+  --accent-orange: #ff8c42;
+  --accent-yellow: #ffd700;
+
+  /* UI Colors */
+  --text-light: #f1f8e9;
+  --text-dark: #1b5e20;
+  --shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Righteous", cursive;
+  background: linear-gradient(
+    135deg,
+    var(--jungle-dark) 0%,
+    var(--jungle-primary) 50%,
+    var(--jungle-medium) 100%
+  );
+  background-attachment: fixed;
+  color: var(--text-light);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Jungle Background Pattern */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 35px,
+      rgba(75, 124, 44, 0.1) 35px,
+      rgba(75, 124, 44, 0.1) 70px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 35px,
+      rgba(45, 80, 22, 0.1) 35px,
+      rgba(45, 80, 22, 0.1) 70px
+    );
+  opacity: 0.3;
+  z-index: -1;
+}
+
+/* Main Container */
+.jungle-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+/* Header */
+.game-header {
+  text-align: center;
+  margin-bottom: 15px;
+  text-shadow: 3px 3px 6px var(--shadow);
+}
+
+.game-title {
+  font-family: "Bungee Shade", cursive;
+  font-size: 4rem;
+  color: var(--accent-yellow);
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.game-subtitle {
+  font-size: 1.3rem;
+  color: var(--jungle-bright);
+  font-style: italic;
+}
+
+/* Game Wrapper */
+.game-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* Main Game Area - Side by Side Layout */
+.game-main-area {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Info Panel */
+.game-info {
+  background: linear-gradient(135deg, var(--earth-dark), var(--earth-medium));
+  border: 4px solid var(--earth-light);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 20px var(--shadow);
+}
+
+.info-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.info-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  border: 2px solid var(--jungle-medium);
+}
+
+.info-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--jungle-bright);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-value {
+  display: block;
+  font-size: 2rem;
+  color: var(--accent-yellow);
+  font-weight: bold;
+  text-shadow: 2px 2px 4px var(--shadow);
+}
+
+/* Sound Toggle Button */
+.sound-toggle {
+  background: linear-gradient(135deg, var(--jungle-medium), var(--jungle-light));
+  border: 2px solid var(--accent-yellow);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.sound-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px var(--shadow);
+  background: linear-gradient(135deg, var(--jungle-light), var(--jungle-bright));
+}
+
+.sound-toggle:active {
+  transform: scale(0.95);
+}
+
+.sound-toggle.muted {
+  background: linear-gradient(135deg, var(--earth-medium), var(--earth-dark));
+  border-color: var(--accent-red);
+}
+
+/* Canvas Container */
+.canvas-container {
+  position: relative;
+  background: linear-gradient(135deg, #1a2f1a, #2d4a2d);
+  border: 6px solid var(--earth-light);
+  border-radius: 15px;
+  box-shadow:
+    0 10px 30px var(--shadow),
+    inset 0 0 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: calc(100vh - 350px);
+}
+
+#gameCanvas {
+  display: block;
+  background:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(107, 157, 58, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(75, 124, 44, 0.1) 0%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, #1a3a1a 0%, #2d5016 100%);
+  image-rendering: crisp-edges;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* Overlays */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(26, 58, 26, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  backdrop-filter: blur(5px);
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay-content {
+  text-align: center;
+  padding: 40px;
+  background: linear-gradient(
+    135deg,
+    var(--jungle-primary),
+    var(--jungle-medium)
+  );
+  border: 4px solid var(--accent-yellow);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px var(--shadow);
+  max-width: 500px;
+}
+
+.overlay-title {
+  font-family: "Creepster", cursive;
+  font-size: 2.5rem;
+  color: var(--accent-yellow);
+  margin-bottom: 20px;
+  text-shadow: 3px 3px 6px var(--shadow);
+}
+
+.overlay-title.game-over {
+  color: var(--accent-red);
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+.overlay-text {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: var(--text-light);
+}
+
+.overlay-text strong {
+  color: var(--accent-orange);
+  font-weight: bold;
+}
+
+.final-score {
+  font-size: 1.5rem;
+  color: var(--accent-yellow);
+  font-weight: bold;
+}
+
+.final-score span,
+.overlay-text span {
+  color: var(--accent-orange);
+}
+
+/* Game Button */
+.game-button {
+  font-family: "Righteous", cursive;
+  font-size: 1.3rem;
+  padding: 15px 40px;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+  color: white;
+  border: 3px solid var(--accent-yellow);
+  border-radius: 50px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 5px 15px var(--shadow);
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.game-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px var(--shadow);
+  background: linear-gradient(135deg, var(--accent-red), var(--accent-orange));
+}
+
+.game-button:active {
+  transform: translateY(0);
+}
+
+/* Controls Info */
+.controls-info {
+    background: linear-gradient(135deg, var(--earth-dark), var(--earth-medium));
+    border: 4px solid var(--earth-light);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 20px var(--shadow);
+    text-align: center;
+    width: 220px;
+    flex-shrink: 0;
+}
+
+.controls-info h3 {
+    font-size: 1.3rem;
+    color: var(--accent-yellow);
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px var(--shadow);
+}
+
+.controls-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.control-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid var(--jungle-medium);
+  color: var(--jungle-bright);
+  font-size: 1rem;
+}
+
+.controls-note {
+  color: var(--accent-orange);
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.controls-note strong {
+  color: var(--accent-yellow);
+}
+
+/* Footer */
+.game-footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--jungle-bright);
+  font-size: 1.1rem;
+  text-shadow: 2px 2px 4px var(--shadow);
+}
+
+/* Responsive Design */
+@media (max-width: 1100px) {
+    .game-main-area {
+        grid-template-columns: 1fr;
+    }
+    
+    .controls-info {
+        width: 100%;
+    }
+    
+    .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2.5rem;
+    }
+    
+    .info-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 1.8rem;
+    }
+    
+    .game-subtitle {
+        font-size: 1rem;
+    }
+    
+    .controls-grid {
+        grid-template-columns: 1fr;
+    }
+}
