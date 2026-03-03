@@ -4,7 +4,7 @@
 const CONFIG = {
   canvas: null,
   ctx: null,
-  gridSize: 20,
+  gridSize: 40,
   tileCountX: 0,
   tileCountY: 0,
 
@@ -47,13 +47,14 @@ const gameState = {
 const images = {
   background: null,
   snakeHead: null,
-  snakeBody: null,
-  monkey: null,
-  tree: null,
-  stone: null,
+  snakeBodyStraight: null,
+  snakeBodyCorner: null,
+  snakeTail: null,
+  pill: null,
+  obstacle: null,
   loaded: false,
   loadedCount: 0,
-  totalImages: 6,
+  totalImages: 7,
 };
 
 // Audio Manager (Web Audio API)
@@ -222,6 +223,8 @@ function init() {
     .addEventListener("click", restartGame);
   document.addEventListener("keydown", handleKeyPress);
   document.getElementById("soundToggle").addEventListener("click", toggleSound);
+  document.getElementById("pauseButton").addEventListener("click", togglePause);
+  document.getElementById("settingsButton").addEventListener("click", () => alert("Settings coming soon!"));
 
   // Update sound button UI
   updateSoundButton();
@@ -232,10 +235,11 @@ function loadImages() {
   const assetPaths = {
     background: 'assets/background.png',
     snakeHead: 'assets/snake-head.png',
-    snakeBody: 'assets/snake-body.png',
-    monkey: 'assets/monkey.png',
-    tree: 'assets/tree.png',
-    stone: 'assets/stone.png',
+    snakeBodyStraight: 'assets/snake-body-straight.png',
+    snakeBodyCorner: 'assets/snake-body-corner.png',
+    snakeTail: 'assets/snake-tail.png',
+    pill: 'assets/pill.png',
+    obstacle: 'assets/obstacle.png',
   };
 
   // Load each image
@@ -244,24 +248,24 @@ function loadImages() {
     img.onload = () => {
       images.loadedCount++;
       console.log(`Loaded ${key}: ${images.loadedCount}/${images.totalImages}`);
-      
+
       if (images.loadedCount === images.totalImages) {
         images.loaded = true;
         console.log('All images loaded successfully!');
         updateStartButton();
       }
     };
-    
+
     img.onerror = () => {
       console.warn(`Failed to load ${key} from ${assetPaths[key]}. Using fallback graphics.`);
       images.loadedCount++;
-      
+
       if (images.loadedCount === images.totalImages) {
         images.loaded = true;
         updateStartButton();
       }
     };
-    
+
     img.src = assetPaths[key];
     images[key] = img;
   });
@@ -385,17 +389,8 @@ function update() {
 function draw() {
   const ctx = CONFIG.ctx;
 
-  // Draw background (photorealistic or gradient fallback)
-  if (images.background && images.background.complete) {
-    // Use tiled background image
-    const pattern = ctx.createPattern(images.background, 'repeat');
-    ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, CONFIG.canvas.width, CONFIG.canvas.height);
-  } else {
-    // Fallback to gradient background
-    ctx.fillStyle = "#1a3a1a";
-    ctx.fillRect(0, 0, CONFIG.canvas.width, CONFIG.canvas.height);
-  }
+  // Clear canvas instead of drawing solid background to be transparent
+  ctx.clearRect(0, 0, CONFIG.canvas.width, CONFIG.canvas.height);
 
   // Draw subtle grid
   drawGrid();
@@ -441,9 +436,16 @@ function drawSnake() {
     const x = segment.x * CONFIG.gridSize;
     const y = segment.y * CONFIG.gridSize;
 
+    // DEBUG: Draw a red box behind every snake segment to confirm coordinates
+    ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+    ctx.fillRect(x, y, CONFIG.gridSize, CONFIG.gridSize);
+
     if (index === 0) {
       // Draw realistic snake head
       drawSnakeHead(x, y);
+    } else if (index === gameState.snake.length - 1) {
+      // Draw tail
+      drawSnakeTail(x, y, index);
     } else {
       // Draw realistic snake body
       drawSnakeBody(x, y, index);
@@ -463,16 +465,18 @@ function drawSnakeHead(x, y) {
   // If image is loaded, use it
   if (images.snakeHead && images.snakeHead.complete) {
     ctx.translate(centerX, centerY);
-    
+
     // Rotate based on direction
     let angle = 0;
     if (gameState.direction.x === 1) angle = 0;
     else if (gameState.direction.x === -1) angle = Math.PI;
     else if (gameState.direction.y === 1) angle = Math.PI / 2;
     else if (gameState.direction.y === -1) angle = -Math.PI / 2;
-    
+
     ctx.rotate(angle);
-    ctx.drawImage(images.snakeHead, -size / 2, -size / 2, size, size);
+    // Draw larger to account for transparent padding and overlap
+    const drawSize = size * 1.8;
+    ctx.drawImage(images.snakeHead, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
     ctx.restore();
     return;
   }
@@ -505,14 +509,14 @@ function drawSnakeHead(x, y) {
       const scaleX = x + 3 + col * 4;
       const scaleY = y + 3 + row * 4;
       const scaleSize = 3;
-      
+
       const scaleGrad = ctx.createRadialGradient(
         scaleX, scaleY, 0,
         scaleX, scaleY, scaleSize
       );
       scaleGrad.addColorStop(0, "#8bc34a");
       scaleGrad.addColorStop(1, "transparent");
-      
+
       ctx.fillStyle = scaleGrad;
       ctx.beginPath();
       ctx.arc(scaleX, scaleY, scaleSize, 0, Math.PI * 2);
@@ -524,18 +528,18 @@ function drawSnakeHead(x, y) {
   // Realistic eyes with 3D effect
   const eyeOffsetX = 5;
   const eyeOffsetY = 4;
-  
+
   // Draw both eyes
   [-1, 1].forEach(side => {
     const eyeX = centerX + side * eyeOffsetX;
     const eyeY = centerY - eyeOffsetY;
-    
+
     // Eye socket shadow
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
     ctx.beginPath();
     ctx.arc(eyeX, eyeY + 1, 3.5, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Eye white/base
     const eyeGrad = ctx.createRadialGradient(
       eyeX, eyeY, 0,
@@ -544,24 +548,24 @@ function drawSnakeHead(x, y) {
     eyeGrad.addColorStop(0, "#ffd700");
     eyeGrad.addColorStop(0.6, "#ffb300");
     eyeGrad.addColorStop(1, "#ff8f00");
-    
+
     ctx.fillStyle = eyeGrad;
     ctx.beginPath();
     ctx.arc(eyeX, eyeY, 3, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Vertical pupil (reptilian)
     ctx.fillStyle = "#000";
     ctx.beginPath();
     ctx.ellipse(eyeX, eyeY, 0.8, 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Eye highlight (realistic reflection)
     ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.beginPath();
     ctx.arc(eyeX - 1, eyeY - 1, 1, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Subtle outer eye ring
     ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
     ctx.lineWidth = 0.5;
@@ -586,7 +590,7 @@ function drawSnakeHead(x, y) {
   );
   highlightGrad.addColorStop(0, "rgba(139, 195, 74, 0.6)");
   highlightGrad.addColorStop(1, "transparent");
-  
+
   ctx.fillStyle = highlightGrad;
   ctx.beginPath();
   ctx.arc(centerX - 3, centerY - 3, size / 3, 0, Math.PI * 2);
@@ -611,8 +615,45 @@ function drawSnakeBody(x, y, index) {
   ctx.save();
 
   // If image is loaded, use it
-  if (images.snakeBody && images.snakeBody.complete) {
-    ctx.drawImage(images.snakeBody, x, y, size, size);
+  if (images.snakeBodyStraight && images.snakeBodyCorner) {
+    const prev = gameState.snake[index - 1];
+    const next = gameState.snake[index + 1];
+    const curr = gameState.snake[index];
+
+    const dx1 = prev.x - curr.x;
+    const dy1 = prev.y - curr.y;
+    const dx2 = next.x - curr.x;
+    const dy2 = next.y - curr.y;
+
+    let angle = 0;
+    let isCorner = true;
+
+    // Straight line
+    if (dx1 === -dx2 && dy1 === -dy2) {
+      isCorner = false;
+      if (dx1 !== 0) { // Horizontal
+        angle = 0;
+      } else { // Vertical
+        angle = Math.PI / 2;
+      }
+    } else {
+      // Corner logic assuming corner image is drawn Right to Bottom
+      if ((dx1 === 1 && dy2 === 1) || (dx2 === 1 && dy1 === 1)) angle = 0;
+      else if ((dx1 === -1 && dy2 === 1) || (dx2 === -1 && dy1 === 1)) angle = Math.PI / 2;
+      else if ((dx1 === -1 && dy2 === -1) || (dx2 === -1 && dy1 === -1)) angle = Math.PI;
+      else if ((dx1 === 1 && dy2 === -1) || (dx2 === 1 && dy1 === -1)) angle = -Math.PI / 2;
+    }
+
+    ctx.translate(centerX, centerY);
+    ctx.rotate(angle);
+
+    const drawSize = size * 1.8;
+    if (isCorner) {
+      ctx.drawImage(images.snakeBodyCorner, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+    } else {
+      ctx.drawImage(images.snakeBodyStraight, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+    }
+
     ctx.restore();
     return;
   }
@@ -643,7 +684,7 @@ function drawSnakeBody(x, y, index) {
     for (let col = 0; col < 3; col++) {
       const scaleX = x + 4 + col * 5;
       const scaleY = y + 4 + row * 5;
-      
+
       const scaleGrad = ctx.createRadialGradient(
         scaleX, scaleY, 0,
         scaleX, scaleY, 2.5
@@ -651,7 +692,7 @@ function drawSnakeBody(x, y, index) {
       scaleGrad.addColorStop(0, "#9ccc65");
       scaleGrad.addColorStop(0.7, "#7cb342");
       scaleGrad.addColorStop(1, "transparent");
-      
+
       ctx.fillStyle = scaleGrad;
       ctx.beginPath();
       ctx.arc(scaleX, scaleY, 2.5, 0, Math.PI * 2);
@@ -667,7 +708,7 @@ function drawSnakeBody(x, y, index) {
   );
   highlightGrad.addColorStop(0, "rgba(139, 195, 74, 0.5)");
   highlightGrad.addColorStop(1, "transparent");
-  
+
   ctx.fillStyle = highlightGrad;
   ctx.beginPath();
   ctx.arc(centerX - 3, centerY - 3, size / 2.5, 0, Math.PI * 2);
@@ -682,7 +723,48 @@ function drawSnakeBody(x, y, index) {
   ctx.restore();
 }
 
-// Draw Photorealistic Food (Monkey)
+// Draw Photorealistic Snake Tail
+function drawSnakeTail(x, y, index) {
+  const ctx = CONFIG.ctx;
+  const size = CONFIG.gridSize;
+  const centerX = x + size / 2;
+  const centerY = y + size / 2;
+
+  ctx.save();
+
+  // If image is loaded, use it
+  if (images.snakeTail && images.snakeTail.complete) {
+    const prev = gameState.snake[index - 1]; // Segment right before tail
+    const curr = gameState.snake[index]; // Tail
+
+    // Tail points away from the previous segment
+    const dx = prev.x - curr.x;
+    const dy = prev.y - curr.y;
+
+    let angle = 0;
+    // Base image is tail facing left.
+    // If dx=1 (prev is right of tail), tail points left, angle=0.
+    if (dx === 1) angle = 0;
+    else if (dx === -1) angle = Math.PI;
+    else if (dy === 1) angle = Math.PI / 2;
+    else if (dy === -1) angle = -Math.PI / 2;
+
+    ctx.translate(centerX, centerY);
+    ctx.rotate(angle);
+    ctx.drawImage(images.snakeTail, -size / 2, -size / 2, size, size);
+    ctx.restore();
+    return;
+  }
+
+  // Fallback... draw simple tail
+  ctx.fillStyle = CONFIG.colors.snakeBody;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, size / 2 - 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Draw Photorealistic Food (Pill)
 function drawFood() {
   const ctx = CONFIG.ctx;
   const x = gameState.food.x * CONFIG.gridSize;
@@ -701,16 +783,16 @@ function drawFood() {
   ctx.translate(-centerX, -centerY);
 
   // If image is loaded, use it
-  if (images.monkey && images.monkey.complete) {
-    ctx.drawImage(images.monkey, x, y, size, size);
-    
+  if (images.pill && images.pill.complete) {
+    ctx.drawImage(images.pill, x, y, size, size);
+
     // Glow effect
     ctx.globalAlpha = 0.3 * pulseScale;
     ctx.fillStyle = "#ffd700";
     ctx.beginPath();
-    ctx.arc(centerX, centerY, size / 2 + 3, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, drawSize / 2 + 3, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.restore();
     return;
   }
@@ -742,7 +824,7 @@ function drawFood() {
     const angle = (i / 8) * Math.PI * 2;
     const furX = centerX + Math.cos(angle) * (size / 3);
     const furY = centerY + Math.sin(angle) * (size / 3);
-    
+
     ctx.fillStyle = "#6d4c41";
     ctx.beginPath();
     ctx.arc(furX, furY, 1.5, 0, Math.PI * 2);
@@ -758,7 +840,7 @@ function drawFood() {
   faceGrad.addColorStop(0, "#e6c9a8");
   faceGrad.addColorStop(0.7, "#d4a574");
   faceGrad.addColorStop(1, "#c89b5e");
-  
+
   ctx.fillStyle = faceGrad;
   ctx.beginPath();
   ctx.arc(centerX, centerY + 2, size / 3, 0, Math.PI * 2);
@@ -771,13 +853,13 @@ function drawFood() {
     ctx.beginPath();
     ctx.arc(centerX + offsetX, centerY, 2.5, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Pupil
     ctx.fillStyle = "#000";
     ctx.beginPath();
     ctx.arc(centerX + offsetX, centerY, 1.5, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Highlight
     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
     ctx.beginPath();
@@ -792,7 +874,7 @@ function drawFood() {
     ctx.beginPath();
     ctx.arc(centerX + offsetX, centerY - 3, 3.5, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Ear
     const earGrad = ctx.createRadialGradient(
       centerX + offsetX - 1, centerY - 4, 0,
@@ -800,12 +882,12 @@ function drawFood() {
     );
     earGrad.addColorStop(0, "#a0826d");
     earGrad.addColorStop(1, "#8b6f47");
-    
+
     ctx.fillStyle = earGrad;
     ctx.beginPath();
     ctx.arc(centerX + offsetX, centerY - 4, 3, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Inner ear
     ctx.fillStyle = "#d4a574";
     ctx.beginPath();
@@ -845,11 +927,7 @@ function drawObstacles() {
     const y = obs.y * CONFIG.gridSize;
     const size = CONFIG.gridSize;
 
-    if (obs.type === "tree") {
-      drawTree(x, y, size);
-    } else {
-      drawStone(x, y, size);
-    }
+    drawObstacle(x, y, size);
   });
 }
 
@@ -864,13 +942,13 @@ function drawTree(x, y, size) {
   // If image is loaded, use it
   if (images.tree && images.tree.complete) {
     ctx.drawImage(images.tree, x, y, size, size);
-    
+
     // Shadow for depth
     ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
     ctx.beginPath();
     ctx.ellipse(centerX + 2, centerY + 4, size / 3, size / 5, 0, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.restore();
     return;
   }
@@ -918,11 +996,11 @@ function drawTree(x, y, size) {
 
   // Moss patches
   const mossPositions = [
-    {x: centerX + 3, y: centerY - 3, r: 3},
-    {x: centerX - 2, y: centerY + 2, r: 2.5},
-    {x: centerX + 4, y: centerY + 4, r: 2}
+    { x: centerX + 3, y: centerY - 3, r: 3 },
+    { x: centerX - 2, y: centerY + 2, r: 2.5 },
+    { x: centerX + 4, y: centerY + 4, r: 2 }
   ];
-  
+
   mossPositions.forEach(moss => {
     const mossGrad = ctx.createRadialGradient(
       moss.x, moss.y, 0,
@@ -931,7 +1009,7 @@ function drawTree(x, y, size) {
     mossGrad.addColorStop(0, "rgba(107, 157, 58, 0.6)");
     mossGrad.addColorStop(0.7, "rgba(75, 124, 44, 0.4)");
     mossGrad.addColorStop(1, "transparent");
-    
+
     ctx.fillStyle = mossGrad;
     ctx.beginPath();
     ctx.arc(moss.x, moss.y, moss.r, 0, Math.PI * 2);
@@ -945,7 +1023,7 @@ function drawTree(x, y, size) {
   );
   highlightGrad.addColorStop(0, "rgba(160, 130, 109, 0.4)");
   highlightGrad.addColorStop(1, "transparent");
-  
+
   ctx.fillStyle = highlightGrad;
   ctx.beginPath();
   ctx.arc(centerX - 4, centerY - 4, size / 3, 0, Math.PI * 2);
@@ -960,8 +1038,8 @@ function drawTree(x, y, size) {
   ctx.restore();
 }
 
-// Draw Photorealistic Stone Obstacle
-function drawStone(x, y, size) {
+// Draw Photorealistic Obstacle
+function drawObstacle(x, y, size) {
   const ctx = CONFIG.ctx;
   const centerX = x + size / 2;
   const centerY = y + size / 2;
@@ -969,15 +1047,15 @@ function drawStone(x, y, size) {
   ctx.save();
 
   // If image is loaded, use it
-  if (images.stone && images.stone.complete) {
-    ctx.drawImage(images.stone, x, y, size, size);
-    
+  if (images.obstacle && images.obstacle.complete) {
+    ctx.drawImage(images.obstacle, x, y, size, size);
+
     // Shadow for depth
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
     ctx.beginPath();
     ctx.ellipse(centerX + 3, centerY + 4, size / 3, size / 5, 0, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.restore();
     return;
   }
@@ -1009,7 +1087,7 @@ function drawStone(x, y, size) {
     const speckleX = x + 3 + Math.random() * (size - 6);
     const speckleY = y + 3 + Math.random() * (size - 6);
     const speckleSize = 0.5 + Math.random() * 1;
-    
+
     ctx.fillStyle = Math.random() > 0.5 ? "#616161" : "#e0e0e0";
     ctx.beginPath();
     ctx.arc(speckleX, speckleY, speckleSize, 0, Math.PI * 2);
@@ -1025,7 +1103,7 @@ function drawStone(x, y, size) {
   ctx.lineTo(x + size / 2, y + size / 2);
   ctx.lineTo(x + size - 3, y + size / 2 + 3);
   ctx.stroke();
-  
+
   ctx.beginPath();
   ctx.moveTo(x + size / 2, y + 3);
   ctx.lineTo(x + size / 2 + 2, y + size - 3);
@@ -1033,11 +1111,11 @@ function drawStone(x, y, size) {
 
   // Moss patches on stone
   const mossSpots = [
-    {x: centerX - 3, y: centerY + 3, r: 2.5},
-    {x: centerX + 4, y: centerY - 2, r: 2},
-    {x: centerX - 1, y: centerY - 4, r: 1.5}
+    { x: centerX - 3, y: centerY + 3, r: 2.5 },
+    { x: centerX + 4, y: centerY - 2, r: 2 },
+    { x: centerX - 1, y: centerY - 4, r: 1.5 }
   ];
-  
+
   mossSpots.forEach(moss => {
     const mossGrad = ctx.createRadialGradient(
       moss.x, moss.y, 0,
@@ -1046,7 +1124,7 @@ function drawStone(x, y, size) {
     mossGrad.addColorStop(0, "rgba(107, 157, 58, 0.7)");
     mossGrad.addColorStop(0.7, "rgba(75, 124, 44, 0.5)");
     mossGrad.addColorStop(1, "transparent");
-    
+
     ctx.fillStyle = mossGrad;
     ctx.beginPath();
     ctx.arc(moss.x, moss.y, moss.r, 0, Math.PI * 2);
@@ -1061,7 +1139,7 @@ function drawStone(x, y, size) {
   highlightGrad.addColorStop(0, "rgba(255, 255, 255, 0.4)");
   highlightGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.2)");
   highlightGrad.addColorStop(1, "transparent");
-  
+
   ctx.fillStyle = highlightGrad;
   ctx.beginPath();
   ctx.arc(centerX - 4, centerY - 4, size / 2.5, 0, Math.PI * 2);
@@ -1127,7 +1205,7 @@ function spawnObstacles(count) {
         gameState.obstacles.push({
           x: x,
           y: y,
-          type: Math.random() > 0.5 ? "tree" : "stone",
+          type: "obstacle",
         });
         validPosition = true;
       }
@@ -1215,9 +1293,12 @@ function handleKeyPress(e) {
 
 // Update UI
 function updateUI() {
-  document.getElementById("score").textContent = gameState.score;
+  // Format score to 6 digits e.g. "004,850"
+  const formatScore = (num) => num.toString().padStart(6, '0').replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+
+  document.getElementById("score").textContent = formatScore(gameState.score);
   document.getElementById("level").textContent = gameState.level;
-  document.getElementById("highScore").textContent = gameState.highScore;
+  document.getElementById("highScore").textContent = formatScore(gameState.highScore);
 }
 
 // Game Over
@@ -1234,8 +1315,8 @@ function gameOver() {
   }
 
   // Show game over screen
-  document.getElementById("finalScore").textContent = gameState.score;
-  document.getElementById("finalLevel").textContent = gameState.level;
+  const formatScore = (num) => num.toString().padStart(6, '0').replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+  document.getElementById("finalScore").textContent = formatScore(gameState.score);
   document.getElementById("gameOverScreen").classList.remove("hidden");
 
   updateUI();
@@ -1258,6 +1339,24 @@ function updateSoundButton() {
     button.textContent = "🔇";
     button.classList.add("muted");
     button.title = "Sound Off (Click to Unmute)";
+  }
+}
+
+// Pause Game
+function togglePause() {
+  if (!gameState.isRunning && !gameState.isPaused) return; // Not playing
+
+  gameState.isPaused = !gameState.isPaused;
+  const pauseBtn = document.getElementById("pauseButton");
+
+  if (gameState.isPaused) {
+    clearTimeout(gameState.gameLoop);
+    pauseBtn.textContent = "▶"; // Play icon
+    pauseBtn.style.color = "#d32f2f";
+  } else {
+    pauseBtn.textContent = "⏸"; // Pause icon
+    pauseBtn.style.color = "var(--text-gold)";
+    gameLoop(); // Resume
   }
 }
 

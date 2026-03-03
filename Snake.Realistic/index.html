@@ -1,105 +1,109 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Realistic Jungle Snake Game - Navigate through the jungle, eat monkeys, avoid obstacles!"
-    />
-    <title>Jungle Snake - Realistic Snake Game</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Creepster&family=Righteous&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="jungle-container">
-      <header class="game-header">
-        <h1 class="game-title">🐍 JUNGLE SNAKE 🐵</h1>
-        <p class="game-subtitle">Survive the Wild, Feast on Monkeys!</p>
-      </header>
 
-      <div class="game-wrapper">
-        <div class="game-info">
-          <div class="info-panel">
-            <div class="info-item">
-              <span class="info-label">Score:</span>
-              <span class="info-value" id="score">0</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Level:</span>
-              <span class="info-value" id="level">1</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">High Score:</span>
-              <span class="info-value" id="highScore">0</span>
-            </div>
-            <div class="info-item">
-              <button class="sound-toggle" id="soundToggle" title="Toggle Sound">
-                🔊
-              </button>
-            </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Jungle Slither - Realistic Snake Game" />
+  <title>Jungle Slither</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Lilita+One&family=Righteous&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="jungle-container">
+    <header class="game-header">
+      <h1 class="game-title">
+        <span class="title-jungle">JUNGLE</span><br>
+        <span class="title-slither">SLITHER</span>
+      </h1>
+      <nav class="top-nav">
+        <a href="#" class="nav-link">PLAY</a> |
+        <a href="#" class="nav-link">LEADERBOARD</a> |
+        <a href="#" class="nav-link">CONTROLS</a> |
+        <a href="#" class="nav-link">QUIT</a>
+      </nav>
+    </header>
+
+    <div class="game-wrapper">
+      <div class="stats-banner">
+        <div class="stat-box">
+          <span class="stat-label">SCORE:</span>
+          <span class="stat-value" id="score">000,000</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">HIGH SCORE:</span>
+          <span class="stat-value" id="highScore">000,000</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">LEVEL:</span>
+          <span class="stat-value" id="level">1</span>
+        </div>
+        <div class="stat-box lives-box">
+          <span class="stat-label">LIVES:</span>
+          <div class="lives-container" id="lives">
+            <span class="heart">💚</span>
+            <span class="heart">💚</span>
+            <span class="heart">💚</span>
           </div>
         </div>
-
-        <div class="game-main-area">
-          <div class="canvas-container">
-            <canvas id="gameCanvas" width="800" height="500"></canvas>
-
-            <!-- Start Screen -->
-            <div class="overlay" id="startScreen">
-              <div class="overlay-content">
-                <h2 class="overlay-title">🌴 Welcome to the Jungle! 🌴</h2>
-                <p class="overlay-text">
-                  Use <strong>ARROW KEYS</strong> to control the snake
-                </p>
-                <p class="overlay-text">
-                  Eat 🐵 monkeys to grow and score points
-                </p>
-                <p class="overlay-text">Avoid walls, obstacles, and yourself!</p>
-                <button class="game-button" id="startButton">START GAME</button>
-              </div>
-            </div>
-
-            <!-- Game Over Screen -->
-            <div class="overlay hidden" id="gameOverScreen">
-              <div class="overlay-content">
-                <h2 class="overlay-title game-over">💀 GAME OVER 💀</h2>
-                <p class="overlay-text final-score">
-                  Final Score: <span id="finalScore">0</span>
-                </p>
-                <p class="overlay-text">
-                  Level Reached: <span id="finalLevel">1</span>
-                </p>
-                <button class="game-button" id="restartButton">PLAY AGAIN</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="controls-info">
-            <h3>🎮 Controls</h3>
-            <div class="controls-grid">
-              <div class="control-item">↑ Move Up</div>
-              <div class="control-item">↓ Move Down</div>
-              <div class="control-item">← Move Left</div>
-              <div class="control-item">→ Move Right</div>
-            </div>
-            <p class="controls-note">
-              Press <strong>SPACE</strong> to restart after game over
-            </p>
-          </div>
+        <div class="stat-box pause-box">
+          <span class="stat-label">PAUSE</span>
+          <button id="pauseButton" class="pause-btn">⏸</button>
         </div>
       </div>
 
-      <footer class="game-footer">
-        <p>🌿 Navigate the jungle, grow your snake, conquer the wild! 🌿</p>
-      </footer>
-    </div>
+      <div class="main-content-area">
+        <div class="canvas-container">
+          <canvas id="gameCanvas" width="800" height="520"></canvas>
 
-    <script src="game.js"></script>
-  </body>
+          <!-- Start Screen -->
+          <div class="overlay" id="startScreen">
+            <div class="overlay-content">
+              <h2 class="overlay-title">Ready to Slither?</h2>
+              <button class="game-button" id="startButton">LOADING...</button>
+            </div>
+          </div>
+
+          <!-- Game Over Screen -->
+          <div class="overlay hidden" id="gameOverScreen">
+            <div class="overlay-content">
+              <h2 class="overlay-title game-over">GAME OVER</h2>
+              <p class="final-score">Score: <span id="finalScore">0</span></p>
+              <button class="game-button" id="restartButton">PLAY AGAIN</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="sidebar">
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">JUNGLE<br>GUIDES</h3>
+            <p class="sidebar-text">LEVELS:<br>1<br>to<br>10</p>
+          </div>
+
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">UPGRADES</h3>
+            <p class="sidebar-text">Speed Boost<br>Life</p>
+          </div>
+
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">SOUND</h3>
+            <button class="sound-toggle" id="soundToggle">🔊</button>
+          </div>
+
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">SETTINGS</h3>
+            <button class="settings-btn" id="settingsButton">⚙️</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+
 </html>
